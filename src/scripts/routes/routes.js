@@ -11,8 +11,8 @@ import EditProductPage from '../pages/edit-product-page';
 import DetailProductPage from '../pages/detail-product';
 import StorePage from '../pages/store-page';
 import NewsDetailPage from '../pages/detail-news';
-import CartPage from '../pages/cart-page'; // added CartPage
-import OrderPage from '../pages/order-page'; // added OrderPage
+import CartPage from '../pages/cart-page';
+import OrderPage from '../pages/order-page';
 
 const routes = {
   '/': HomePage,
@@ -28,8 +28,8 @@ const routes = {
   '/detail-product/:id': DetailProductPage,
   '/store/:id': StorePage,
   '/news/:id': NewsDetailPage,
-  '/cart': CartPage, // added CartPage route
-  '/order': OrderPage, // added OrderPage route
+  '/cart': CartPage,
+  '/order': OrderPage,
 };
 
 export default routes;
