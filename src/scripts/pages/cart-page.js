@@ -1,5 +1,6 @@
 import ProductData from '../utils/product-data';
 import UserInfo from '../utils/user-info';
+import CartData from '../utils/cart-data'; // Pastikan file ini ada
 
 const CartPage = {
   async render() {
@@ -11,7 +12,7 @@ const CartPage = {
         <div id="total-cost">
           <h3>Total Biaya: <span id="total-price">Rp0</span></h3>
         </div>
-        <input type="file" id="payment-proof" style="display:none;">
+        <input type="file" id="payment-proof" style="display:none;" accept="image/*">
         <button id="upload-proof">Unggah Bukti Pembayaran</button>
         <button id="checkout" disabled>Checkout</button>
       </div>
@@ -25,8 +26,7 @@ const CartPage = {
     const uploadProofButton = document.querySelector('#upload-proof');
     const checkoutButton = document.querySelector('#checkout');
 
-    // Fetch cart data from localStorage
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cart = CartData.getCartItems(); // Fetch cart data from CartData
     let totalCost = 0;
 
     cartItems.innerHTML = cart.map(item => `
@@ -47,8 +47,7 @@ const CartPage = {
     document.querySelectorAll('.remove-item').forEach(button => {
       button.addEventListener('click', () => {
         const id = button.dataset.id;
-        const updatedCart = cart.filter(item => item.id !== id);
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        CartData.removeCartItem(id);
         location.reload();
       });
     });
@@ -63,7 +62,7 @@ const CartPage = {
           event.target.value = item.quantity;
         } else {
           item.quantity = quantity;
-          localStorage.setItem('cart', JSON.stringify(cart));
+          CartData.updateCartItem(id, quantity);
           location.reload();
         }
       });
@@ -79,13 +78,13 @@ const CartPage = {
         const storageRef = firebase.storage().ref(`payment-proof/${UserInfo.getUserInfo().uid}/${file.name}`);
         await storageRef.put(file);
         const url = await storageRef.getDownloadURL();
-        localStorage.setItem('paymentProof', url);
+        CartData.setPaymentProof(url);
         checkoutButton.disabled = false;
       }
     });
 
     checkoutButton.addEventListener('click', async () => {
-      const paymentProof = localStorage.getItem('paymentProof');
+      const paymentProof = CartData.getPaymentProof();
       if (!paymentProof) {
         alert('Unggah bukti pembayaran terlebih dahulu');
         return;
@@ -98,8 +97,7 @@ const CartPage = {
 
       // Move to OrderPage
       await ProductData.moveToOrderPage(orders);
-      localStorage.removeItem('cart');
-      localStorage.removeItem('paymentProof');
+      CartData.clearCart();
       location.href = '#/order';
     });
   },
