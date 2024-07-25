@@ -23,6 +23,7 @@ class ProductData {
             price: product.price,
             desc: product.desc,
             seller: product.seller,
+            stock: product.stock,
             image: url,
           }).then(() => {
             location.href = '#/profile';
@@ -80,6 +81,7 @@ class ProductData {
               price: product.price,
               desc: product.desc,
               seller: product.seller,
+              stock: product.stock,
               image: url,
             }).then(() => {
               location.href = '#/profile';
@@ -93,6 +95,7 @@ class ProductData {
           price: product.price,
           desc: product.desc,
           seller: product.seller,
+          stock: product.stock,
         }).then(() => {
           location.href = '#/profile';
           location.reload();
