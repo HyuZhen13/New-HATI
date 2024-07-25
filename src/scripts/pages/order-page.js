@@ -16,7 +16,7 @@ const OrderPage = {
       const orders = await CartData.getOrders(userId);
       const orderHistoryContainer = document.querySelector('#order-history');
 
-      if (orders && orders.length > 0) {
+      if (orders && Array.isArray(orders) && orders.length > 0) {
         orders.forEach(order => {
           const orderItem = document.createElement('div');
           orderItem.classList.add('order-item');
@@ -41,7 +41,7 @@ const OrderPage = {
         orderHistoryContainer.innerHTML = '<p>Belum ada pesanan.</p>';
       }
     } catch (error) {
-      console.error(error);
+      console.error('Gagal memuat riwayat pesanan:', error);
       document.querySelector('#order-history').innerHTML = '<p>Gagal memuat riwayat pesanan.</p>';
     }
   },
