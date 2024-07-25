@@ -77,24 +77,28 @@ const CartPage = {
     paymentProofInput.addEventListener('change', async () => {
       const file = paymentProofInput.files[0];
       if (file) {
-        const storageRef = firebase.storage().ref(`payment-proof/${UserInfo.getUserInfo().uid}/${file.name}`);
-        const uploadTask = storageRef.put(file);
+        try {
+          const storageRef = firebase.storage().ref(`payment-proof/${UserInfo.getUserInfo().uid}/${file.name}`);
+          const uploadTask = storageRef.put(file);
 
-        uploadTask.on('state_changed', 
-          (snapshot) => {
-            // Optional: can show progress here
-          }, 
-          (error) => {
-            console.error('Error uploading file:', error);
-          }, 
-          async () => {
-            const url = await uploadTask.snapshot.ref.getDownloadURL();
-            CartData.setPaymentProof(url);
-            checkoutButton.disabled = false; // Enable the checkout button
-            notification.style.display = 'block'; // Show notification
-            setTimeout(() => notification.style.display = 'none', 3000); // Hide notification after 3 seconds
-          }
-        );
+          uploadTask.on('state_changed', 
+            (snapshot) => {
+              // Optional: can show progress here
+            }, 
+            (error) => {
+              console.error('Error uploading file:', error);
+            }, 
+            async () => {
+              const url = await uploadTask.snapshot.ref.getDownloadURL();
+              CartData.setPaymentProof(url);
+              checkoutButton.disabled = false; // Enable the checkout button
+              notification.style.display = 'block'; // Show notification
+              setTimeout(() => notification.style.display = 'none', 3000); // Hide notification after 3 seconds
+            }
+          );
+        } catch (error) {
+          console.error('Error handling file upload:', error);
+        }
       }
     });
 
