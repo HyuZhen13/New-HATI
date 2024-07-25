@@ -8,10 +8,7 @@ const DetailProductPage = {
   async render() {
     return `
     <article class="product-detail-article">
-      <div id="product-detail-container">
-        
-      </div>
-      
+      <div id="product-detail-container"></div>
       <div id="btn-product">
         <button id="store-detail">
           <img>
@@ -19,16 +16,14 @@ const DetailProductPage = {
           <i class="fa-solid fa-circle-check fa-lg"></i></small>
         </button>
       </div>
-
       <div id="more-product-container">
         <h2>Other Items</h2>
-        <div id="more-product">
-
-        </div>
+        <div id="more-product"></div>
       </div>
     </article>
-        `;
+    `;
   },
+
   async afterRender() {
     const url = UrlParser.parseActiveUrlCaseSensitive();
 
@@ -75,8 +70,8 @@ const DetailProductPage = {
     });
 
     storeDetail.innerHTML = `
-        <img src="${store.photo ? store.photo : './images/profile.png'}">
-        <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
+      <img src="${store.photo ? store.photo : './images/profile.png'}">
+      <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
     `;
     storeDetail.addEventListener('click', (event) => {
       event.preventDefault();
@@ -86,16 +81,17 @@ const DetailProductPage = {
     Object.values(productAll).reverse().forEach((item) => {
       const productItem = document.createElement('div');
       productItem.innerHTML = `
-          <div class="card">
-            <img src="${item.image}" class="card-img-top" alt="...">
-            <div class="card-body">
+        <div class="card">
+          <img src="${item.image}" class="card-img-top" alt="...">
+          <div class="card-body">
             <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
             <h5 class="card-title">${item.name}</h5>
-            </div>
-            <div class="card-footer">
-            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg'></i>' : ''}</small>
           </div>
-        `;
+          <div class="card-footer">
+            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
+          </div>
+        </div>
+      `;
       productItem.setAttribute('class', 'product-item');
       productItem.addEventListener('click', (event) => {
         event.preventDefault();
@@ -112,4 +108,5 @@ const DetailProductPage = {
     }
   },
 };
+
 export default DetailProductPage;
