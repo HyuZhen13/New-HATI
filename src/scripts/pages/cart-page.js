@@ -82,23 +82,16 @@ const CartPage = {
       if (file) {
         const storage = getStorage();
         const storageRef = storageRef(storage, `payment-proof/${UserInfo.getUserInfo().uid}/${file.name}`);
-        const uploadTask = uploadBytes(storageRef, file);
-
-        uploadTask.on('state_changed', 
-          (snapshot) => {
-            // Optional: can show progress here
-          }, 
-          (error) => {
-            console.error('Error uploading file:', error);
-          }, 
-          async () => {
-            const url = await getDownloadURL(storageRef);
-            CartData.setPaymentProof(url);
-            checkoutButton.disabled = false; // Enable the checkout button
-            notification.style.display = 'block'; // Show notification
-            setTimeout(() => notification.style.display = 'none', 3000); // Hide notification after 3 seconds
-          }
-        );
+        try {
+          await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(storageRef);
+          CartData.setPaymentProof(url);
+          checkoutButton.disabled = false; // Enable the checkout button
+          notification.style.display = 'block'; // Show notification
+          setTimeout(() => notification.style.display = 'none', 3000); // Hide notification after 3 seconds
+        } catch (error) {
+          console.error('Error uploading file:', error);
+        }
       }
     });
 
@@ -114,10 +107,14 @@ const CartPage = {
         paymentProof,
       }));
 
-      // Move to OrderPage
-      await ProductData.moveToOrderPage(orders);
-      CartData.clearCart();
-      location.href = '#/order';
+      // Assume ProductData.moveToOrderPage is a function to handle order processing
+      try {
+        await ProductData.moveToOrderPage(orders);
+        CartData.clearCart();
+        location.href = '#/order';
+      } catch (error) {
+        console.error('Error processing order:', error);
+      }
     });
   },
 };
