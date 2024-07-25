@@ -1,6 +1,4 @@
-/* eslint-disable consistent-return */
-/* eslint-disable object-shorthand */
-import { getDatabase, ref, set, update, get } from 'firebase/database';
+import { getDatabase, ref, get } from 'firebase/database';
 import UserInfo from './user-info';
 
 class OrderData {
@@ -11,19 +9,12 @@ class OrderData {
     
     try {
       const ordersSnapshot = await get(ordersRef);
-      if (!ordersSnapshot.exists()) {
-        return null;
-      }
-
-      const ordersData = ordersSnapshot.val();
-      const orderIds = Object.keys(ordersData);
-      
-      // Return the latest order
-      if (orderIds.length > 0) {
-        const latestOrderId = orderIds[orderIds.length - 1];
+      if (ordersSnapshot.exists()) {
+        const ordersData = ordersSnapshot.val();
+        const orderIds = Object.keys(ordersData);
+        const latestOrderId = Math.max(...orderIds); // Assuming latest order has the highest ID
         return ordersData[latestOrderId];
       }
-
       return null;
     } catch (error) {
       console.error('Error fetching current order:', error);
@@ -31,30 +22,18 @@ class OrderData {
     }
   }
 
-  static async completeOrder() {
+  static async getCompletedOrders(userId) {
     const db = getDatabase();
-    const userId = UserInfo.getUserInfo().uid;
-    const ordersRef = ref(db, `orders/${userId}`);
-    
+    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
+
     try {
-      const ordersSnapshot = await get(ordersRef);
-      if (!ordersSnapshot.exists()) {
-        throw new Error('Tidak ada pesanan yang ditemukan.');
+      const completedOrdersSnapshot = await get(completedOrdersRef);
+      if (completedOrdersSnapshot.exists()) {
+        return Object.values(completedOrdersSnapshot.val());
       }
-
-      const ordersData = ordersSnapshot.val();
-      const orderIds = Object.keys(ordersData);
-
-      if (orderIds.length > 0) {
-        const latestOrderId = orderIds[orderIds.length - 1];
-        const orderRef = ref(db, `orders/${userId}/${latestOrderId}`);
-        
-        await update(orderRef, { status: 'completed' });
-      } else {
-        throw new Error('Tidak ada pesanan yang dapat diselesaikan.');
-      }
+      return [];
     } catch (error) {
-      console.error('Error completing order:', error);
+      console.error('Error fetching completed orders:', error);
       throw error;
     }
   }
