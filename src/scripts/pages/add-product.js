@@ -13,6 +13,7 @@ const AddProductPage = {
           <p>Click to add product image. </p>
           <input placeholder="Product Name" name="productName" required>
           <input type="number" placeholder="Product Price (Rp)" name="productPrice" required>
+          <input type="number" placeholder="Product Stock" name="productStock" required>
           <textarea placeholder="Product Description" name="productDesc" id="userDesc" required></textarea>
           <input type="file" name="productImgInput" id="productImgInput"style="display:none;" required>
           <button type="submit">Upload Product</button>
@@ -30,6 +31,7 @@ const AddProductPage = {
       uid: UserInfo.getUserInfo().uid,
       name: '',
       price: 0,
+      stock: 0,
       desc: '',
       seller: UserInfo.getUserInfo().username,
     };
@@ -50,6 +52,7 @@ const AddProductPage = {
       event.preventDefault();
       product.name = document.forms.addProductForm.productName.value;
       product.price = document.forms.addProductForm.productPrice.value;
+      product.stock = document.forms.addProductForm.productStock.value;
       product.desc = document.forms.addProductForm.productDesc.value;
       const image = productImgInput.files[0];
 
