@@ -50,15 +50,56 @@ class CartData {
   static async uploadPaymentProof(file) {
     const userId = UserInfo.getUserInfo().uid;
     const storage = getStorage();
-    const storageRef = storageRef(storage, `payment-proof/${userId}/${file.name}`);
+    const storageReference = storageRef(storage, `payment-proof/${userId}/${file.name}`);
     try {
-      const uploadTask = await uploadBytes(storageRef, file);
+      const uploadTask = await uploadBytes(storageReference, file);
       const url = await getDownloadURL(uploadTask.ref);
       this.setPaymentProof(url);
       return url; // Return the URL for further use if needed
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
+    }
+  }
+
+  static async moveToOrderPage() {
+    const db = getDatabase();
+    const userId = UserInfo.getUserInfo().uid;
+    const orderId = Date.now();
+    const orderRef = ref(db, `orders/${userId}/${orderId}`);
+    const cartItems = this.getCartItems();
+    const paymentProof = this.getPaymentProof();
+
+    if (!cartItems.length) {
+      throw new Error('Keranjang belanja kosong.');
+    }
+
+    try {
+      await set(orderRef, {
+        id: orderId,
+        items: cartItems,
+        paymentProof: paymentProof,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Update stock for each product
+      for (const order of cartItems) {
+        const productRef = ref(db, `products/${order.id}`);
+        const productSnapshot = await get(productRef);
+        const productData = productSnapshot.val();
+
+        const newStock = productData.stock - order.quantity;
+        if (newStock < 0) {
+          throw new Error(`Stok produk ${order.name} tidak mencukupi.`);
+        }
+
+        await update(productRef, { stock: newStock });
+      }
+
+      // Clear cart after moving to order
+      this.clearCart();
+    } catch (e) {
+      console.log(e.message);
     }
   }
 }
