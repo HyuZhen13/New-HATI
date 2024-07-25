@@ -1,4 +1,4 @@
-import ProductData from '../utils/product-data';
+import CartData from '../utils/cart-data';
 import UserInfo from '../utils/user-info';
 const OrderPage = {
   async render() {
