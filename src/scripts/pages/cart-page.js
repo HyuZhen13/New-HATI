@@ -1,13 +1,17 @@
 import CartData from '../utils/cart-data';
 import ProductData from '../utils/product-data';
+import UserInfo from '../utils/user-info';
 
 const CartPage = {
   async render() {
     return `
-      <div id="cart-items"></div>
-      <div id="total-price"></div>
-      <input type="file" id="payment-proof" />
-      <button id="checkout" disabled>Checkout</button>
+      <div class="cart-page">
+        <h1>Keranjang Belanja</h1>
+        <div id="cart-items" class="cart-items"></div>
+        <div id="total-price" class="total-price"></div>
+        <input type="file" id="payment-proof" />
+        <button id="checkout" disabled>Checkout</button>
+      </div>
     `;
   },
 
@@ -22,6 +26,7 @@ const CartPage = {
 
     cartItems.forEach(item => {
       const cartItem = document.createElement('div');
+      cartItem.classList.add('cart-item');
       cartItem.innerHTML = `
         <img src="${item.image}" alt="${item.name}">
         <h4>${item.name}</h4>
@@ -66,7 +71,8 @@ const CartPage = {
       const paymentProof = await CartData.getPaymentProof();
       if (paymentProof) {
         const orderItems = cartItems.map(item => ({ id: item.id, quantity: item.quantity }));
-        await ProductData.moveToOrderPage(orderItems);
+        const userId = UserInfo.getUserInfo().uid;
+        await ProductData.moveToOrderPage(userId, orderItems);
         await CartData.clearCart();
         location.href = '#/order';
       } else {
