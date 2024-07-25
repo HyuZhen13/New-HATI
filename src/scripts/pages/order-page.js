@@ -45,3 +45,5 @@ const OrderPage = {
       console.error(error);
       document.querySelector('#order-history').innerHTML = '<p>Gagal memuat riwayat pesanan.</p>';
     }
+
+export default OrderPage; 
