@@ -1,50 +1,44 @@
-import ProductData from '../utils/product-data';
+import { getDatabase, ref, get } from 'firebase/database';
 import UserInfo from '../utils/user-info';
+import ProductData from '../utils/product-data';
 
 const OrderPage = {
   async render() {
     return `
       <div class="order-page">
-        <h1>Riwayat Pesanan</h1>
-        <div id="order-history" class="order-history"></div>
+        <h2>Riwayat Pesanan</h2>
+        <div id="order-list">Memuat pesanan...</div>
       </div>
     `;
   },
 
   async afterRender() {
-    try {
-      const userId = UserInfo.getUserInfo().uid;
-      const orders = await ProductData.getOrders(userId);
-      const orderHistoryContainer = document.querySelector('#order-history');
+    const userId = UserInfo.getUserInfo().uid;
+    const orders = await ProductData.getOrders(userId);
 
-      if (orders && orders.length > 0) {
-        orders.forEach(order => {
-          const orderItem = document.createElement('div');
-          orderItem.classList.add('order-item');
-          orderItem.innerHTML = `
-            <h4>ID Pesanan: ${order.id}</h4>
-            <div class="order-details">
-              ${order.items.map(item => `
-                <div class="order-item-detail">
-                  <img src="${item.image}" alt="${item.name}">
-                  <div>
-                    <h5>${item.name}</h5>
-                    <p>Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                    <p>Jumlah: ${item.quantity}</p>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          `;
-          orderHistoryContainer.appendChild(orderItem);
-        });
-      } else {
-        orderHistoryContainer.innerHTML = '<p>Belum ada pesanan.</p>';
-      }
-    } catch (error) {
-      console.error(error);
-      document.querySelector('#order-history').innerHTML = '<p>Gagal memuat riwayat pesanan.</p>';
+    const orderListContainer = document.getElementById('order-list');
+
+    if (!orders || Object.keys(orders).length === 0) {
+      orderListContainer.innerHTML = '<p>Belum ada pesanan.</p>';
+      return;
     }
+
+    orderListContainer.innerHTML = Object.values(orders).map(order => `
+      <div class="order-item">
+        <h3>Pesanan ID: ${order.id}</h3>
+        <p>Tanggal: ${new Date(order.timestamp).toLocaleString()}</p>
+        <div class="order-details">
+          ${order.items.map(item => `
+            <div class="order-product">
+              <img src="${item.image}" alt="${item.name}" />
+              <p>Nama: ${item.name}</p>
+              <p>Jumlah: ${item.quantity}</p>
+              <p>Harga: Rp${item.price}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
   },
 };
 
