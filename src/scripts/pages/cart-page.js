@@ -1,6 +1,9 @@
+/* eslint-disable consistent-return */
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getDatabase, ref, update } from 'firebase/database';
 import ProductData from '../utils/product-data';
 import UserInfo from '../utils/user-info';
-import CartData from '../utils/cart-data'; // Pastikan file ini ada
+import CartData from '../utils/cart-data';
 
 const CartPage = {
   async render() {
@@ -77,28 +80,25 @@ const CartPage = {
     paymentProofInput.addEventListener('change', async () => {
       const file = paymentProofInput.files[0];
       if (file) {
-        try {
-          const storageRef = firebase.storage().ref(`payment-proof/${UserInfo.getUserInfo().uid}/${file.name}`);
-          const uploadTask = storageRef.put(file);
+        const storage = getStorage();
+        const storageRef = storageRef(storage, `payment-proof/${UserInfo.getUserInfo().uid}/${file.name}`);
+        const uploadTask = uploadBytes(storageRef, file);
 
-          uploadTask.on('state_changed', 
-            (snapshot) => {
-              // Optional: can show progress here
-            }, 
-            (error) => {
-              console.error('Error uploading file:', error);
-            }, 
-            async () => {
-              const url = await uploadTask.snapshot.ref.getDownloadURL();
-              CartData.setPaymentProof(url);
-              checkoutButton.disabled = false; // Enable the checkout button
-              notification.style.display = 'block'; // Show notification
-              setTimeout(() => notification.style.display = 'none', 3000); // Hide notification after 3 seconds
-            }
-          );
-        } catch (error) {
-          console.error('Error handling file upload:', error);
-        }
+        uploadTask.on('state_changed', 
+          (snapshot) => {
+            // Optional: can show progress here
+          }, 
+          (error) => {
+            console.error('Error uploading file:', error);
+          }, 
+          async () => {
+            const url = await getDownloadURL(storageRef);
+            CartData.setPaymentProof(url);
+            checkoutButton.disabled = false; // Enable the checkout button
+            notification.style.display = 'block'; // Show notification
+            setTimeout(() => notification.style.display = 'none', 3000); // Hide notification after 3 seconds
+          }
+        );
       }
     });
 
