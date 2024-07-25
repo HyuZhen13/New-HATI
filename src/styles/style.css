@@ -98,6 +98,56 @@ html {
   cursor: pointer;
   border-radius: 5px;
 }
+/* End Cart Page */
+
+/* Order Page */
+.order-page {
+  padding: 20px;
+}
+
+.order-page h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.order-history {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.order-item h4 {
+  margin: 0;
+}
+
+.order-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-item-detail {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.order-item-detail img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+/* End Order Page */
 
 /* navigation */
 nav {
@@ -138,7 +188,6 @@ input {
   min-width: 50px;
   min-height: 44px;
 }
-/* END Cart Page */
 
 /* main */
 main {
