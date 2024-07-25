@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable object-shorthand */
 import {
-  getDatabase, ref, set, update, remove, child,
+  getDatabase, ref, set, update, get,
 } from 'firebase/database';
 import {
   getStorage, uploadBytes, ref as storageRef, getDownloadURL,
@@ -100,6 +100,18 @@ class CartData {
       this.clearCart();
     } catch (e) {
       console.log(e.message);
+    }
+  }
+
+  static async getOrders(userId) {
+    const db = getDatabase();
+    const ordersRef = ref(db, `orders/${userId}`);
+    try {
+      const ordersSnapshot = await get(ordersRef);
+      return ordersSnapshot.exists() ? Object.values(ordersSnapshot.val()) : [];
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw error;
     }
   }
 }
