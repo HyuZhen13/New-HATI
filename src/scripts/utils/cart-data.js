@@ -109,4 +109,11 @@ class CartData {
     try {
       const ordersSnapshot = await get(ordersRef);
       return ordersSnapshot.exists() ? Object.values(ordersSnapshot.val()) : [];
-    } catch (error)
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw error;
+    }
+  }
+}
+
+export default CartData;
