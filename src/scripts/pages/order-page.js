@@ -1,5 +1,6 @@
 import CartData from '../utils/cart-data';
 import UserInfo from '../utils/user-info';
+
 const OrderPage = {
   async render() {
     return `
@@ -12,7 +13,7 @@ const OrderPage = {
   async afterRender() {
     try {
       const userId = UserInfo.getUserInfo().uid;
-      const orders = await ProductData.getOrders(userId);
+      const orders = await CartData.getOrders(userId);
       const orderHistoryContainer = document.querySelector('#order-history');
 
       if (orders && orders.length > 0) {
@@ -45,4 +46,5 @@ const OrderPage = {
     }
   },
 };
+
 export default OrderPage;
