@@ -4,7 +4,7 @@ import Logout from '../pages/logout';
 import RegisterPage from '../pages/register-page';
 import AboutPage from '../pages/about-page';
 import AdminPage from '../pages/admin-page';
-import MarketplacePage from '../pages/marketplace-page'; // fixed import path
+import MarketplacePage from '../pages/marketList-page';
 import ProfilePage from '../pages/profile';
 import AddProductPage from '../pages/add-product';
 import EditProductPage from '../pages/edit-product-page';
