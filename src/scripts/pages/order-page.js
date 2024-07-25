@@ -1,51 +1,44 @@
-import CartData from '../utils/cart-data';
+import OrderData from '../utils/order-data';
 import UserInfo from '../utils/user-info';
 
 const OrderPage = {
   async render() {
     return `
       <div class="order-page">
-        <h1>Riwayat Pesanan</h1>
-        <div id="order-history" class="order-history"></div>
+        <h1>Detail Pesanan</h1>
+        <div id="order-details" class="order-details"></div>
+        <button id="complete-order" disabled>Pesanan Selesai</button>
       </div>
     `;
   },
   async afterRender() {
-    try {
-      const userId = UserInfo.getUserInfo().uid;
-      console.log(`Fetching orders for userId: ${userId}`);
-      const orders = await CartData.getOrders(userId);
-      console.log('Orders fetched:', orders);
-      const orderHistoryContainer = document.querySelector('#order-history');
+    const orderDetailsContainer = document.querySelector('#order-details');
+    const completeOrderButton = document.querySelector('#complete-order');
 
-      if (Array.isArray(orders) && orders.length > 0) {
-        orders.forEach(order => {
-          const orderItem = document.createElement('div');
-          orderItem.classList.add('order-item');
-          orderItem.innerHTML = `
-            <h4>ID Pesanan: ${order.id}</h4>
-            <div class="order-details">
-              ${order.items.map(item => `
-                <div class="order-item-detail">
-                  <img src="${item.image}" alt="${item.name}">
-                  <div>
-                    <h5>${item.name}</h5>
-                    <p>Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                    <p>Jumlah: ${item.quantity}</p>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          `;
-          orderHistoryContainer.appendChild(orderItem);
-        });
-      } else {
-        orderHistoryContainer.innerHTML = '<p>Belum ada pesanan.</p>';
-      }
-    } catch (error) {
-      console.error('Gagal memuat riwayat pesanan:', error);
-      document.querySelector('#order-history').innerHTML = '<p>Gagal memuat riwayat pesanan.</p>';
+    const order = await OrderData.getCurrentOrder();
+    if (order) {
+      orderDetailsContainer.innerHTML = `
+        <div class="order-item">
+          <h2>Pesanan Anda</h2>
+          <p>Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.totalPrice)}</p>
+          <img src="${order.paymentProofUrl}" alt="Bukti Pembayaran">
+        </div>
+      `;
+
+      completeOrderButton.disabled = false;
+    } else {
+      orderDetailsContainer.innerHTML = '<p>Tidak ada pesanan yang sedang diproses.</p>';
     }
+
+    completeOrderButton.addEventListener('click', async () => {
+      try {
+        await OrderData.completeOrder();
+        alert('Pesanan Anda telah selesai.');
+        location.href = '#/';
+      } catch (error) {
+        alert('Gagal menyelesaikan pesanan: ' + error.message);
+      }
+    });
   },
 };
 
