@@ -1,7 +1,6 @@
 import CartData from '../utils/cart-data';
 import ProductData from '../utils/product-data';
 import UserInfo from '../utils/user-info';
-
 const CartPage = {
   async render() {
     return `
@@ -14,16 +13,13 @@ const CartPage = {
       </div>
     `;
   },
-
   async afterRender() {
     const cartItems = await CartData.getCartItems();
     const cartItemsContainer = document.querySelector('#cart-items');
     const totalPriceContainer = document.querySelector('#total-price');
     const checkoutButton = document.querySelector('#checkout');
     const paymentProofInput = document.querySelector('#payment-proof');
-
     let totalPrice = 0;
-
     cartItems.forEach(item => {
       const cartItem = document.createElement('div');
       cartItem.classList.add('cart-item');
@@ -35,9 +31,7 @@ const CartPage = {
         <button data-id="${item.id}" class="remove-button">Remove</button>
       `;
       cartItemsContainer.appendChild(cartItem);
-
       totalPrice += item.price * item.quantity;
-
       const quantityInput = cartItem.querySelector('.quantity-input');
       quantityInput.addEventListener('change', async (e) => {
         const quantity = parseInt(e.target.value);
@@ -49,16 +43,13 @@ const CartPage = {
           location.reload();
         }
       });
-
       const removeButton = cartItem.querySelector('.remove-button');
       removeButton.addEventListener('click', async () => {
         await CartData.removeCartItem(item.id);
         location.reload();
       });
     });
-
     totalPriceContainer.innerHTML = `Total Price: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}`;
-
     paymentProofInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -66,7 +57,6 @@ const CartPage = {
         checkoutButton.disabled = false;
       }
     });
-
     checkoutButton.addEventListener('click', async () => {
       const paymentProof = await CartData.getPaymentProof();
       if (paymentProof) {
