@@ -53,7 +53,7 @@ const CartPage = {
       });
     });
 
-    totalPriceContainer.innerHTML = `Total Price: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}`;
+    totalPriceContainer.innerHTML = `Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}`;
     paymentProofInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
