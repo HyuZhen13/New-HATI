@@ -1,16 +1,18 @@
 import HomePage from '../pages/home-page';
 import LoginPage from '../pages/login-page';
-import Logout from '../pages/logut';
+import Logout from '../pages/logout';
 import RegisterPage from '../pages/register-page';
 import AboutPage from '../pages/about-page';
 import AdminPage from '../pages/admin-page';
-import MarketplacePage from '../pages/marketList-page';
+import MarketplacePage from '../pages/marketplace-page'; // fixed import path
 import ProfilePage from '../pages/profile';
 import AddProductPage from '../pages/add-product';
 import EditProductPage from '../pages/edit-product-page';
 import DetailProductPage from '../pages/detail-product';
 import StorePage from '../pages/store-page';
 import NewsDetailPage from '../pages/detail-news';
+import CartPage from '../pages/cart-page'; // added CartPage
+import OrderPage from '../pages/order-page'; // added OrderPage
 
 const routes = {
   '/': HomePage,
@@ -26,6 +28,8 @@ const routes = {
   '/detail-product/:id': DetailProductPage,
   '/store/:id': StorePage,
   '/news/:id': NewsDetailPage,
+  '/cart': CartPage, // added CartPage route
+  '/order': OrderPage, // added OrderPage route
 };
 
 export default routes;
