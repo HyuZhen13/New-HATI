@@ -1,3 +1,13 @@
+/* eslint-disable consistent-return */
+/* eslint-disable object-shorthand */
+import {
+  getDatabase, ref, set, update, remove, child,
+} from 'firebase/database';
+import {
+  getStorage, uploadBytes, ref as storageRef, getDownloadURL,
+} from 'firebase/storage';
+import UserInfo from './user-info';
+
 class CartData {
   static getCartItems() {
     return JSON.parse(localStorage.getItem('cart')) || [];
@@ -35,6 +45,21 @@ class CartData {
   static clearCart() {
     localStorage.removeItem('cart');
     localStorage.removeItem('paymentProof');
+  }
+
+  static async uploadPaymentProof(file) {
+    const userId = UserInfo.getUserInfo().uid;
+    const storage = getStorage();
+    const storageRef = storageRef(storage, `payment-proof/${userId}/${file.name}`);
+    try {
+      const uploadTask = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(uploadTask.ref);
+      this.setPaymentProof(url);
+      return url; // Return the URL for further use if needed
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
   }
 }
 
