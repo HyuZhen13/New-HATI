@@ -112,6 +112,7 @@ class CartData {
         return [];
       }
       const ordersData = ordersSnapshot.val();
+      console.log('Orders data fetched from Firebase:', ordersData);
       return Object.values(ordersData);
     } catch (error) {
       console.error('Error fetching orders:', error);
