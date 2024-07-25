@@ -14,6 +14,7 @@ const EditProductPage = {
           <p>Click to edit product image. </p>
           <input placeholder="Product Name" name="productName">
           <input type="number" placeholder="Product Price (Rp)" name="productPrice">
+          <input type="number" placeholder="Product Stock" name="productStock">
           <textarea placeholder="Product Description" name="productDesc" id="userDesc"></textarea>
           <input type="file" name="productImgInput" id="productImgInput"style="display:none;">
           <button type="submit">Update Product</button>
@@ -38,6 +39,7 @@ const EditProductPage = {
 
     document.forms.addProductForm.productName.value = product.name;
     document.forms.addProductForm.productPrice.value = product.price;
+    document.forms.addProductForm.productStock.value = product.stock;
     document.forms.addProductForm.productDesc.value = product.desc;
 
     productImg.src = `${product.image}`;
@@ -58,6 +60,7 @@ const EditProductPage = {
       event.preventDefault();
       product.name = document.forms.addProductForm.productName.value;
       product.price = document.forms.addProductForm.productPrice.value;
+      product.stock = document.forms.addProductForm.productStock.value;
       product.desc = document.forms.addProductForm.productDesc.value;
       const image = productImgInput.files[0];
 
