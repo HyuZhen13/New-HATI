@@ -17,8 +17,8 @@ const OrderPage = {
       const orders = await ProductData.getOrders(userId);
       const orderHistoryContainer = document.querySelector('#order-history');
 
-      if (orders && Object.keys(orders).length > 0) {
-        Object.values(orders).forEach(order => {
+      if (orders && orders.length > 0) {
+        orders.forEach(order => {
           const orderItem = document.createElement('div');
           orderItem.classList.add('order-item');
           orderItem.innerHTML = `
