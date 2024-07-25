@@ -41,7 +41,7 @@ const OrderPage = {
           <p>Jumlah: ${item.quantity}</p>
           <textarea class="comment-input" placeholder="Tulis komentar..."></textarea>
           <input type="number" class="rating-input" min="1" max="5" placeholder="Rating (1-5)" />
-          <button data-id="${item.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
+          <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
         `;
         orderItemsContainer.appendChild(orderItem);
 
@@ -52,7 +52,7 @@ const OrderPage = {
 
           if (rating && comment) {
             try {
-              await this.saveProductFeedback(item.id, rating, comment);
+              await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
               alert('Rating dan komentar berhasil disimpan.');
               saveFeedbackButton.disabled = true; // Disable button after saving
             } catch (error) {
@@ -103,41 +103,6 @@ const OrderPage = {
     } catch (error) {
       console.error('Error fetching completed orders:', error);
       completedOrdersContainer.innerHTML = '<p>Gagal memuat pesanan selesai.</p>';
-    }
-  },
-
-  async saveProductFeedback(productId, rating, comment) {
-    const db = getDatabase();
-    const userId = UserInfo.getUserInfo().uid;
-    const feedbackRef = ref(db, `product-feedback/${userId}/${productId}`);
-    const orderRef = ref(db, `orders/${userId}`);
-    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
-
-    try {
-      await set(feedbackRef, { rating, comment });
-      const ordersSnapshot = await get(orderRef);
-      if (ordersSnapshot.exists()) {
-        const ordersData = ordersSnapshot.val();
-        const orderIds = Object.keys(ordersData);
-
-        for (const orderId of orderIds) {
-          const orderData = ordersData[orderId];
-          const itemIndex = orderData.items.findIndex(item => item.id === productId);
-
-          if (itemIndex > -1) {
-            const item = orderData.items[itemIndex];
-            item.rating = rating;
-            item.comment = comment;
-            orderData.items.splice(itemIndex, 1);
-            await update(ref(db, `orders/${userId}/${orderId}`), { items: orderData.items });
-            await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData, items: [...orderData.items, item] });
-            break;
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error saving feedback:', error);
-      throw error;
     }
   }
 };
