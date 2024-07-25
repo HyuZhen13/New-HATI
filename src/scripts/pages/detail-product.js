@@ -33,6 +33,7 @@ const DetailProductPage = {
 
     const product = await ProductData.getProductById(url.id);
     const productAll = await ProductData.getProduct();
+    console.log(typeof productAll);
     const store = await UserData.getUserData(product.uid);
 
     const productDetailContainer = document.querySelector('#product-detail-container');
@@ -40,7 +41,7 @@ const DetailProductPage = {
     const moreProduct = document.querySelector('#more-product');
 
     productDetailContainer.innerHTML = `
-    <img src="${product.image}">
+    <img src = "${product.image}">
     <div>
       <h3>${product.name}</h3>
       <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</p>
@@ -72,10 +73,11 @@ const DetailProductPage = {
             <img src="${item.image}" class="card-img-top" alt="...">
             <div class="card-body">
             <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+            <p>Stok: ${item.stock}</p>
             <h5 class="card-title">${item.name}</h5>
             </div>
             <div class="card-footer">
-            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg'></i>' : ''}</small>
+            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
           </div>
         `;
       productItem.setAttribute('class', 'product-item');
