@@ -16,6 +16,7 @@ const CartPage = {
         <button id="upload-proof">Unggah Bukti Pembayaran</button>
         <button id="checkout" disabled>Checkout</button>
       </div>
+      <div id="notification" style="display: none;">Bukti pembayaran berhasil diunggah</div>
     </article>
     `;
   },
@@ -25,8 +26,9 @@ const CartPage = {
     const paymentProofInput = document.querySelector('#payment-proof');
     const uploadProofButton = document.querySelector('#upload-proof');
     const checkoutButton = document.querySelector('#checkout');
+    const notification = document.querySelector('#notification');
 
-    const cart = CartData.getCartItems(); // Fetch cart data from CartData
+    const cart = CartData.getCartItems();
     let totalCost = 0;
 
     cartItems.innerHTML = cart.map(item => `
@@ -89,7 +91,8 @@ const CartPage = {
             const url = await uploadTask.snapshot.ref.getDownloadURL();
             CartData.setPaymentProof(url);
             checkoutButton.disabled = false; // Enable the checkout button
-            alert('Bukti pembayaran berhasil diunggah');
+            notification.style.display = 'block'; // Show notification
+            setTimeout(() => notification.style.display = 'none', 3000); // Hide notification after 3 seconds
           }
         );
       }
