@@ -1,9 +1,8 @@
 /* eslint-disable consistent-return */
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getDatabase, ref, update } from 'firebase/database';
-import ProductData from '../utils/product-data';
-import UserInfo from '../utils/user-info';
+import { getDatabase, ref, set } from 'firebase/database';
 import CartData from '../utils/cart-data';
+import UserInfo from '../utils/user-info';
 
 const CartPage = {
   async render() {
@@ -23,6 +22,7 @@ const CartPage = {
     </article>
     `;
   },
+
   async afterRender() {
     const cartItems = document.querySelector('#cart-items');
     const totalPriceElement = document.querySelector('#total-price');
@@ -34,6 +34,7 @@ const CartPage = {
     const cart = CartData.getCartItems();
     let totalCost = 0;
 
+    // Render cart items
     cartItems.innerHTML = cart.map(item => `
       <div class="cart-item">
         <img src="${item.image}" alt="${item.name}">
@@ -44,11 +45,13 @@ const CartPage = {
       </div>
     `).join('');
 
+    // Calculate total cost
     cart.forEach(item => {
       totalCost += item.price * item.quantity;
     });
     totalPriceElement.textContent = Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalCost);
 
+    // Remove item event listeners
     document.querySelectorAll('.remove-item').forEach(button => {
       button.addEventListener('click', () => {
         const id = button.dataset.id;
@@ -57,6 +60,7 @@ const CartPage = {
       });
     });
 
+    // Update item quantity event listeners
     document.querySelectorAll('input[type="number"]').forEach(input => {
       input.addEventListener('change', (event) => {
         const id = event.target.dataset.id;
@@ -73,6 +77,7 @@ const CartPage = {
       });
     });
 
+    // Upload payment proof event listener
     uploadProofButton.addEventListener('click', () => {
       paymentProofInput.click();
     });
@@ -95,21 +100,26 @@ const CartPage = {
       }
     });
 
+    // Checkout event listener
     checkoutButton.addEventListener('click', async () => {
       const paymentProof = CartData.getPaymentProof();
       if (!paymentProof) {
         alert('Unggah bukti pembayaran terlebih dahulu');
         return;
       }
+
       const userId = UserInfo.getUserInfo().uid;
       const orders = cart.map(item => ({
         ...item,
         paymentProof,
       }));
 
-      // Assume ProductData.moveToOrderPage is a function to handle order processing
       try {
-        await ProductData.moveToOrderPage(orders);
+        const db = getDatabase();
+        orders.forEach(order => {
+          set(ref(db, `orders/${userId}/${order.id}`), order);
+        });
+
         CartData.clearCart();
         location.href = '#/order';
       } catch (error) {
