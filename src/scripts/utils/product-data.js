@@ -3,7 +3,7 @@ import {
   get, getDatabase, ref, set, child, update, remove,
 } from 'firebase/database';
 import {
-  getStorage, uploadBytes, ref as refs, getDownloadURL,
+  getStorage, uploadBytes, ref as storageRef, getDownloadURL,
 } from 'firebase/storage';
 import UserInfo from './user-info'; // Pastikan untuk menyesuaikan path jika perlu
 
@@ -12,11 +12,11 @@ class ProductData {
     const db = getDatabase();
     const storage = getStorage();
     const id = Date.now();
-    const storageRef = refs(storage, `users/${product.uid}/products/${product.name}`);
+    const storageReference = storageRef(storage, `users/${product.uid}/products/${product.name}`);
 
     try {
-      await uploadBytes(storageRef, image);
-      const url = await getDownloadURL(refs(storageRef));
+      await uploadBytes(storageReference, image);
+      const url = await getDownloadURL(storageReference);
       
       await set(ref(db, `products/${id}-${product.uid}`), {
         id: `${id}-${product.uid}`,
@@ -71,12 +71,12 @@ class ProductData {
   static async updateProduct(product, image) {
     const db = getDatabase();
     const storage = getStorage();
-    const storageRef = refs(storage, `users/${product.uid}/products/${product.name}`);
+    const storageReference = storageRef(storage, `users/${product.uid}/products/${product.name}`);
 
     try {
       if (image) {
-        await uploadBytes(storageRef, image);
-        const url = await getDownloadURL(refs(storageRef));
+        await uploadBytes(storageReference, image);
+        const url = await getDownloadURL(storageReference);
         
         await update(ref(db, `products/${product.id}`), {
           name: product.name,
@@ -103,17 +103,22 @@ class ProductData {
     }
   }
 
-  static async moveToOrderPage(orders) {
+  static async moveToOrderPage(orderItems, paymentProof) {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
     const orderId = Date.now();
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
-    
+
     try {
-      await set(orderRef, { orders });
+      await set(orderRef, {
+        id: orderId,
+        items: orderItems,
+        paymentProof,
+        timestamp: new Date().toISOString(),
+      });
 
       // Update stock for each product
-      for (const order of orders) {
+      for (const order of orderItems) {
         const productRef = ref(db, `products/${order.id}`);
         const productSnapshot = await get(productRef);
         const productData = productSnapshot.val();
@@ -133,7 +138,7 @@ class ProductData {
   static async getOrders(userId) {
     const dbRef = ref(getDatabase());
     try {
-      const ordersSnapshot = await get(ref(dbRef, `orders/${userId}`));
+      const ordersSnapshot = await get(child(dbRef, `orders/${userId}`));
       return ordersSnapshot.val() || [];
     } catch (e) {
       console.log(e.message);
