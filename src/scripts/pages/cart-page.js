@@ -70,9 +70,9 @@ const CartPage = {
     checkoutButton.addEventListener('click', async () => {
       const paymentProof = await CartData.getPaymentProof();
       if (paymentProof) {
-        const orderItems = cartItems.map(item => ({ id: item.id, quantity: item.quantity }));
+        const orderItems = cartItems.map(item => ({ id: item.id, quantity: item.quantity, name: item.name, price: item.price, image: item.image }));
         const userId = UserInfo.getUserInfo().uid;
-        await ProductData.moveToOrderPage(userId, orderItems);
+        await ProductData.moveToOrderPage(userId, orderItems, paymentProof);
         await CartData.clearCart();
         location.href = '#/order';
       } else {
