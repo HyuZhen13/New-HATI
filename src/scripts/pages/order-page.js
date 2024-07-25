@@ -13,10 +13,12 @@ const OrderPage = {
   async afterRender() {
     try {
       const userId = UserInfo.getUserInfo().uid;
+      console.log(`Fetching orders for userId: ${userId}`);
       const orders = await CartData.getOrders(userId);
+      console.log('Orders fetched:', orders);
       const orderHistoryContainer = document.querySelector('#order-history');
 
-      if (orders && Array.isArray(orders) && orders.length > 0) {
+      if (Array.isArray(orders) && orders.length > 0) {
         orders.forEach(order => {
           const orderItem = document.createElement('div');
           orderItem.classList.add('order-item');
