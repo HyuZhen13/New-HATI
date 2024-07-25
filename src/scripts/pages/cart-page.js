@@ -1,6 +1,6 @@
 import CartData from '../utils/cart-data';
-import ProductData from '../utils/product-data';
 import UserInfo from '../utils/user-info';
+
 const CartPage = {
   async render() {
     return `
@@ -20,6 +20,7 @@ const CartPage = {
     const checkoutButton = document.querySelector('#checkout');
     const paymentProofInput = document.querySelector('#payment-proof');
     let totalPrice = 0;
+
     cartItems.forEach(item => {
       const cartItem = document.createElement('div');
       cartItem.classList.add('cart-item');
@@ -32,6 +33,7 @@ const CartPage = {
       `;
       cartItemsContainer.appendChild(cartItem);
       totalPrice += item.price * item.quantity;
+
       const quantityInput = cartItem.querySelector('.quantity-input');
       quantityInput.addEventListener('change', async (e) => {
         const quantity = parseInt(e.target.value);
@@ -43,32 +45,37 @@ const CartPage = {
           location.reload();
         }
       });
+
       const removeButton = cartItem.querySelector('.remove-button');
       removeButton.addEventListener('click', async () => {
         await CartData.removeCartItem(item.id);
         location.reload();
       });
     });
+
     totalPriceContainer.innerHTML = `Total Price: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}`;
     paymentProofInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        await CartData.setPaymentProof(file);
+        const url = await CartData.uploadPaymentProof(file);
         checkoutButton.disabled = false;
       }
     });
+
     checkoutButton.addEventListener('click', async () => {
-      const paymentProof = await CartData.getPaymentProof();
+      const paymentProof = CartData.getPaymentProof();
       if (paymentProof) {
-        const orderItems = cartItems.map(item => ({ id: item.id, quantity: item.quantity, name: item.name, price: item.price, image: item.image }));
-        const userId = UserInfo.getUserInfo().uid;
-        await ProductData.moveToOrderPage(userId, orderItems, paymentProof);
-        await CartData.clearCart();
-        location.href = '#/order';
+        try {
+          await CartData.moveToOrderPage();
+          location.href = '#/order';
+        } catch (error) {
+          alert('Gagal melakukan checkout: ' + error.message);
+        }
       } else {
         alert('Silakan unggah bukti pembayaran terlebih dahulu.');
       }
     });
   },
 };
+
 export default CartPage;
