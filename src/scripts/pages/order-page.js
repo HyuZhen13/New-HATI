@@ -1,6 +1,5 @@
 import ProductData from '../utils/product-data';
 import UserInfo from '../utils/user-info';
-
 const OrderPage = {
   async render() {
     return `
@@ -10,7 +9,6 @@ const OrderPage = {
       </div>
     `;
   },
-
   async afterRender() {
     try {
       const userId = UserInfo.getUserInfo().uid;
@@ -45,5 +43,6 @@ const OrderPage = {
       console.error(error);
       document.querySelector('#order-history').innerHTML = '<p>Gagal memuat riwayat pesanan.</p>';
     }
-
-export default OrderPage; 
+  },
+};
+export default OrderPage;
