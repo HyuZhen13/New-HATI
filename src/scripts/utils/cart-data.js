@@ -108,7 +108,11 @@ class CartData {
     const ordersRef = ref(db, `orders/${userId}`);
     try {
       const ordersSnapshot = await get(ordersRef);
-      return ordersSnapshot.exists() ? Object.values(ordersSnapshot.val()) : [];
+      if (!ordersSnapshot.exists()) {
+        return [];
+      }
+      const ordersData = ordersSnapshot.val();
+      return Object.values(ordersData);
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw error;
