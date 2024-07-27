@@ -65,7 +65,10 @@ const OrderPage = {
             try {
               await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
               alert('Rating dan komentar berhasil disimpan.');
-              saveFeedbackButton.disabled = true; // Disable button after saving
+              
+              // Pindahkan pesanan ke completed-orders dan reload halaman
+              await OrderData.completeOrder();
+              location.reload();
             } catch (error) {
               alert('Gagal menyimpan rating dan komentar: ' + error.message);
             }
