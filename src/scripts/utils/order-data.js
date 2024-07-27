@@ -22,7 +22,7 @@ class OrderData {
       // Mengembalikan pesanan terbaru
       if (orderIds.length > 0) {
         const latestOrderId = orderIds[orderIds.length - 1];
-        return { id: latestOrderId, ...ordersData[latestOrderId] };
+        return ordersData[latestOrderId];
       }
 
       return null;
@@ -33,18 +33,40 @@ class OrderData {
   }
 
   // Menyelesaikan pesanan terkini pengguna
-  static async completeOrder(orderId, orderData) {
+  static async completeOrder() {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
-    const orderRef = ref(db, `orders/${userId}/${orderId}`);
-    const completedOrdersRef = ref(db, `completed-orders/${userId}/${orderId}`);
+    const ordersRef = ref(db, `orders/${userId}`);
+    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
     
     try {
-      // Pindahkan pesanan ke completed-orders
-      await set(completedOrdersRef, orderData);
+      const ordersSnapshot = await get(ordersRef);
+      if (!ordersSnapshot.exists()) {
+        throw new Error('Tidak ada pesanan yang ditemukan.');
+      }
 
-      // Hapus pesanan dari orders
-      await remove(orderRef);
+      const ordersData = ordersSnapshot.val();
+      const orderIds = Object.keys(ordersData);
+
+      if (orderIds.length > 0) {
+        const latestOrderId = orderIds[orderIds.length - 1];
+        const orderData = ordersData[latestOrderId];
+
+        const orderRef = ref(db, `orders/${userId}/${latestOrderId}`);
+        
+        // Perbarui status pesanan menjadi selesai
+        await update(orderRef, { status: 'completed' });
+
+        // Pindahkan pesanan ke completed-orders
+        await set(ref(db, `completed-orders/${userId}/${latestOrderId}`), orderData);
+
+        // Hapus pesanan dari orders
+        await remove(orderRef);
+
+        return orderData;
+      } else {
+        throw new Error('Tidak ada pesanan yang dapat diselesaikan.');
+      }
     } catch (error) {
       console.error('Error completing order:', error);
       throw error;
