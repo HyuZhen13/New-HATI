@@ -106,8 +106,20 @@ const OrderPage = {
                 </div>
               `).join('')}
             </div>
+            <button data-id="${order.id}" class="delete-order-button">Hapus Pesanan</button>
           `;
           completedOrdersContainer.appendChild(orderElement);
+
+          const deleteOrderButton = orderElement.querySelector('.delete-order-button');
+          deleteOrderButton.addEventListener('click', async () => {
+            try {
+              await OrderData.deleteCompletedOrder(order.id);
+              alert('Pesanan berhasil dihapus.');
+              location.reload();
+            } catch (error) {
+              alert('Gagal menghapus pesanan: ' + error.message);
+            }
+          });
         });
       } else {
         completedOrdersContainer.innerHTML = '<p>Tidak ada pesanan yang selesai.</p>';
