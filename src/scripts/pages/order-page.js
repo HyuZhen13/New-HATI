@@ -14,8 +14,8 @@ const OrderPage = {
     `;
   },
   async afterRender() {
-    this.renderCurrentOrder();
-    this.renderCompletedOrders();
+    await this.renderCurrentOrder();
+    await this.renderCompletedOrders();
   },
   async renderCurrentOrder() {
     const orderDetailsContainer = document.querySelector('#order-details');
@@ -24,8 +24,11 @@ const OrderPage = {
     const order = await OrderData.getCurrentOrder();
     if (order) {
       // Mendapatkan total harga dari elemen di halaman keranjang
-      const totalPriceElement = document.querySelector('#total-price');
-      const totalPrice = totalPriceElement ? parseFloat(totalPriceElement.textContent.replace(/[^\d.-]/g, '')) : order.totalPrice;
+      let totalPrice = order.totalPrice;
+      const totalPriceElement = document.querySelector('.total-price');
+      if (totalPriceElement) {
+        totalPrice = parseFloat(totalPriceElement.textContent.replace(/[^\d.-]/g, ''));
+      }
 
       orderDetailsContainer.innerHTML = `
         <h2>Pesanan Anda</h2>
