@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 /* eslint-disable object-shorthand */
-import { getDatabase, ref, set, update, get } from 'firebase/database';
+import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
 import UserInfo from './user-info';
 
 class OrderData {
@@ -112,6 +112,20 @@ class OrderData {
       return [];
     } catch (error) {
       console.error('Error fetching completed orders:', error);
+      throw error;
+    }
+  }
+
+  // Menghapus pesanan yang telah selesai
+  static async deleteCompletedOrder(orderId) {
+    const db = getDatabase();
+    const userId = UserInfo.getUserInfo().uid;
+    const orderRef = ref(db, `completed-orders/${userId}/${orderId}`);
+
+    try {
+      await remove(orderRef);
+    } catch (error) {
+      console.error('Error deleting completed order:', error);
       throw error;
     }
   }
