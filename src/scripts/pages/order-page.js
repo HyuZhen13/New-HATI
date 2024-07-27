@@ -27,16 +27,9 @@ const OrderPage = {
 
     const order = await OrderData.getCurrentOrder();
     if (order) {
-      // Mendapatkan total harga dari elemen di halaman keranjang
-      const totalPriceElement = document.querySelector('.total-price');
-      let totalPrice = order.totalPrice;
-      if (totalPriceElement) {
-        totalPrice = parseFloat(totalPriceElement.textContent.replace(/[^\d.-]/g, ''));
-      }
-
       orderDetailsContainer.innerHTML = `
         <h2>Pesanan Anda</h2>
-        <p>Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}</p>
+        <p>Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.totalPrice)}</p>
         <img src="${order.paymentProof}" alt="Bukti Pembayaran">
         <div id="order-items"></div>
       `;
@@ -67,7 +60,7 @@ const OrderPage = {
               alert('Rating dan komentar berhasil disimpan.');
               
               // Pindahkan pesanan ke completed-orders dan reload halaman
-              await OrderData.completeOrder();
+              await OrderData.completeOrder(order.id, order);
               location.reload();
             } catch (error) {
               alert('Gagal menyimpan rating dan komentar: ' + error.message);
