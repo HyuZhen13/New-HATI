@@ -4,6 +4,7 @@ import { getDatabase, ref, set, update, get } from 'firebase/database';
 import UserInfo from './user-info';
 
 class OrderData {
+  // Mengambil pesanan terkini pengguna
   static async getCurrentOrder() {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
@@ -18,7 +19,7 @@ class OrderData {
       const ordersData = ordersSnapshot.val();
       const orderIds = Object.keys(ordersData);
       
-      // Return the latest order
+      // Mengembalikan pesanan terbaru
       if (orderIds.length > 0) {
         const latestOrderId = orderIds[orderIds.length - 1];
         return ordersData[latestOrderId];
@@ -31,6 +32,7 @@ class OrderData {
     }
   }
 
+  // Menyelesaikan pesanan terkini pengguna
   static async completeOrder() {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
@@ -59,6 +61,7 @@ class OrderData {
     }
   }
 
+  // Menyimpan umpan balik produk
   static async saveProductFeedback(orderId, productId, rating, comment) {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
@@ -67,10 +70,10 @@ class OrderData {
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
 
     try {
-      // Save feedback
+      // Menyimpan umpan balik
       await set(feedbackRef, { rating, comment });
 
-      // Update order data
+      // Memperbarui data pesanan
       const orderSnapshot = await get(orderRef);
       if (!orderSnapshot.exists()) {
         throw new Error('Pesanan tidak ditemukan.');
@@ -83,10 +86,10 @@ class OrderData {
         const item = orderData.items[itemIndex];
         item.rating = rating;
         item.comment = comment;
-        orderData.items.splice(itemIndex, 1);
+        orderData.items[itemIndex] = item;
 
         await update(orderRef, { items: orderData.items });
-        await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData, items: [...orderData.items, item] });
+        await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
       } else {
         throw new Error('Produk tidak ditemukan dalam pesanan.');
       }
@@ -96,6 +99,7 @@ class OrderData {
     }
   }
 
+  // Mengambil pesanan yang telah selesai
   static async getCompletedOrders(userId) {
     const db = getDatabase();
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
