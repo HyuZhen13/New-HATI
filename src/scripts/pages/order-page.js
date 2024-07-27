@@ -27,9 +27,16 @@ const OrderPage = {
 
     const order = await OrderData.getCurrentOrder();
     if (order) {
+      // Mendapatkan total harga dari elemen di halaman keranjang
+      const totalPriceElement = document.querySelector('.total-price');
+      let totalPrice = order.totalPrice;
+      if (totalPriceElement) {
+        totalPrice = parseFloat(totalPriceElement.textContent.replace(/[^\d.-]/g, ''));
+      }
+
       orderDetailsContainer.innerHTML = `
         <h2>Pesanan Anda</h2>
-        <p>Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.totalPrice)}</p>
+        <p>Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}</p>
         <img src="${order.paymentProof}" alt="Bukti Pembayaran">
         <div id="order-items"></div>
       `;
@@ -58,15 +65,10 @@ const OrderPage = {
             try {
               await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
               alert('Rating dan komentar berhasil disimpan.');
-
-              // Pindahkan pesanan ke completed-orders
-              await OrderData.completeOrder(order.id, order);
-
-              // Update tampilan untuk menunjukkan tidak ada pesanan saat ini
-              orderDetailsContainer.innerHTML = '<p>Tidak ada pesanan yang sedang diproses.</p>';
-
-              // Render ulang pesanan selesai
-              await this.renderCompletedOrders();
+              
+              // Pindahkan pesanan ke completed-orders dan reload halaman
+              await OrderData.completeOrder();
+              location.reload();
             } catch (error) {
               alert('Gagal menyimpan rating dan komentar: ' + error.message);
             }
@@ -88,7 +90,6 @@ const OrderPage = {
     try {
       const orders = await OrderData.getCompletedOrders(userId);
       if (orders.length > 0) {
-        completedOrdersContainer.innerHTML = '';
         orders.forEach(order => {
           const orderElement = document.createElement('div');
           orderElement.classList.add('order');
@@ -108,7 +109,7 @@ const OrderPage = {
                 </div>
               `).join('')}
             </div>
-            <button class="delete-order-button" data-id="${order.id}">Hapus Pesanan</button>
+            <button data-id="${order.id}" class="delete-order-button">Hapus Pesanan</button>
           `;
           completedOrdersContainer.appendChild(orderElement);
 
@@ -117,7 +118,7 @@ const OrderPage = {
             try {
               await OrderData.deleteCompletedOrder(order.id);
               alert('Pesanan berhasil dihapus.');
-              await this.renderCompletedOrders();
+              location.reload();
             } catch (error) {
               alert('Gagal menghapus pesanan: ' + error.message);
             }
