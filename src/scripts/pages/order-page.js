@@ -68,10 +68,10 @@ const OrderPage = {
 
               // Pindahkan pesanan ke completed-orders dan reload halaman
               await OrderData.completeOrder();
-              await this.renderCurrentOrder(); // Render ulang pesanan saat ini setelah dipindahkan
-              await this.renderCompletedOrders(); // Render ulang pesanan selesai setelah pesanan saat ini dipindahkan
+              location.reload();
             } catch (error) {
               alert('Gagal menyimpan rating dan komentar: ' + error.message);
+              console.log(error); // Menambahkan console.log untuk menampilkan detail error
             }
           } else {
             alert('Silakan isi rating dan komentar.');
@@ -119,9 +119,10 @@ const OrderPage = {
             try {
               await OrderData.deleteCompletedOrder(order.id);
               alert('Pesanan berhasil dihapus.');
-              await this.renderCompletedOrders(); // Render ulang pesanan selesai setelah penghapusan
+              location.reload();
             } catch (error) {
               alert('Gagal menghapus pesanan: ' + error.message);
+              console.log(error); // Menambahkan console.log untuk menampilkan detail error
             }
           });
         });
@@ -131,6 +132,7 @@ const OrderPage = {
     } catch (error) {
       console.error('Error fetching completed orders:', error);
       completedOrdersContainer.innerHTML = '<p>Gagal memuat pesanan selesai.</p>';
+      console.log(error); // Menambahkan console.log untuk menampilkan detail error
     }
   }
 };
