@@ -65,10 +65,11 @@ const OrderPage = {
             try {
               await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
               alert('Rating dan komentar berhasil disimpan.');
-              
+
               // Pindahkan pesanan ke completed-orders dan reload halaman
               await OrderData.completeOrder();
-              location.reload();
+              await this.renderCurrentOrder(); // Render ulang pesanan saat ini setelah dipindahkan
+              await this.renderCompletedOrders(); // Render ulang pesanan selesai setelah pesanan saat ini dipindahkan
             } catch (error) {
               alert('Gagal menyimpan rating dan komentar: ' + error.message);
             }
@@ -118,7 +119,7 @@ const OrderPage = {
             try {
               await OrderData.deleteCompletedOrder(order.id);
               alert('Pesanan berhasil dihapus.');
-              location.reload();
+              await this.renderCompletedOrders(); // Render ulang pesanan selesai setelah penghapusan
             } catch (error) {
               alert('Gagal menghapus pesanan: ' + error.message);
             }
