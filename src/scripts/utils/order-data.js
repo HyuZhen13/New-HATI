@@ -37,6 +37,7 @@ class OrderData {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
     const ordersRef = ref(db, `orders/${userId}`);
+    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
     
     try {
       const ordersSnapshot = await get(ordersRef);
@@ -49,9 +50,20 @@ class OrderData {
 
       if (orderIds.length > 0) {
         const latestOrderId = orderIds[orderIds.length - 1];
+        const orderData = ordersData[latestOrderId];
+
         const orderRef = ref(db, `orders/${userId}/${latestOrderId}`);
         
+        // Perbarui status pesanan menjadi selesai
         await update(orderRef, { status: 'completed' });
+
+        // Pindahkan pesanan ke completed-orders
+        await set(ref(db, `completed-orders/${userId}/${latestOrderId}`), orderData);
+
+        // Hapus pesanan dari orders
+        await remove(orderRef);
+
+        return orderData;
       } else {
         throw new Error('Tidak ada pesanan yang dapat diselesaikan.');
       }
