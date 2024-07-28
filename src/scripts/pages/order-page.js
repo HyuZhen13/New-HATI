@@ -27,12 +27,9 @@ const OrderPage = {
 
     const order = await OrderData.getCurrentOrder();
     if (order) {
-      // Mendapatkan total harga dari order.totalPrice
-      let totalPrice = order.totalPrice;
 
       orderDetailsContainer.innerHTML = `
         <h2>Pesanan Anda</h2>
-        <p>Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}</p>
         <img src="${order.paymentProof}" alt="Bukti Pembayaran">
         <div id="order-items"></div>
       `;
@@ -96,7 +93,6 @@ const OrderPage = {
           orderElement.classList.add('order');
           orderElement.innerHTML = `
             <h2>Pesanan Selesai - ${order.id}</h2>
-            <p>Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.totalPrice)}</p>
             <img src="${order.paymentProof}" alt="Bukti Pembayaran">
             <div class="order-items">
               ${order.items.map(item => `
