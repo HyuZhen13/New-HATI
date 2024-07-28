@@ -98,9 +98,11 @@ html {
   cursor: pointer;
   border-radius: 5px;
 }
+
 /* End Cart Page */
 
 /* Order Page */
+
 .order-page {
   padding: 20px;
 }
@@ -147,7 +149,49 @@ html {
   object-fit: cover;
   border-radius: 5px;
 }
-/* End Order Page */
+
+.order-item img {
+  max-height: 650px;
+  object-fit: contain;
+}
+
+/* Responsive Design Cart $ Order */
+@media (max-width: 400px) {
+  .cart-item, .order-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cart-item img, .order-item img, .order-item-detail img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .remove-button, #checkout {
+    width: 100%;
+    text-align: center;
+  }
+
+  .total-price {
+    text-align: left;
+  }
+}
+
+@media (max-width: 300px) {
+  .cart-item img, .order-item img, .order-item-detail img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .quantity-input {
+    width: 40px;
+  }
+
+  .total-price {
+    font-size: 16px;
+  }
+}
+/* End Responsive Design Order & Cart Page */
 
 /* navigation */
 nav {
