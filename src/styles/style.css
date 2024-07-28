@@ -81,6 +81,13 @@ html {
   cursor: pointer;
 }
 
+.total-price {
+  text-align: right;
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
 #checkout {
   display: block;
   margin: 20px auto;
@@ -91,7 +98,6 @@ html {
   cursor: pointer;
   border-radius: 5px;
 }
-
 /* End Cart Page */
 
 /* Order Page */
@@ -144,11 +150,11 @@ html {
 }
 
 .order-item img {
-  max-height: 650px;
+  max-height: 500px; /* Adjusted to a smaller size */
   object-fit: contain;
 }
 
-/* Responsive Design Cart $ Order */
+/* Responsive Design Card & Order Page*/
 @media (max-width: 400px) {
   .cart-item, .order-item {
     flex-direction: column;
@@ -165,9 +171,8 @@ html {
     text-align: center;
   }
 
-.order-item img {
-  max-height: 360px;
-  object-fit: contain;
+  .total-price {
+    text-align: left;
   }
 }
 
@@ -175,6 +180,10 @@ html {
   .cart-item img, .order-item img, .order-item-detail img {
     width: 60px;
     height: 60px;
+  }
+
+  .order-item img {
+    max-height: 300px; /* Further adjusted for smaller screens */
   }
 
   .quantity-input {
@@ -185,7 +194,8 @@ html {
     font-size: 16px;
   }
 }
-/* End Responsive Design Order & Cart Page */
+/* End Responsive Design Cart & Order Pgae*/
+
 
 /* navigation */
 nav {
