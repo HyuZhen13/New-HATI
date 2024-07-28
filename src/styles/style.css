@@ -81,13 +81,6 @@ html {
   cursor: pointer;
 }
 
-.total-price {
-  text-align: right;
-  margin-top: 20px;
-  font-size: 18px;
-  font-weight: bold;
-}
-
 #checkout {
   display: block;
   margin: 20px auto;
@@ -172,8 +165,10 @@ html {
     text-align: center;
   }
 
-  .total-price {
-    text-align: left;
+.order-item img {
+  max-height: 360px;
+  object-fit: contain;
+}
   }
 }
 
