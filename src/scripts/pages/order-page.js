@@ -42,42 +42,46 @@ const OrderPage = {
       `;
 
       const orderItemsContainer = document.querySelector('#order-items');
-      order.items.forEach(item => {
-        const orderItem = document.createElement('div');
-        orderItem.classList.add('order-item');
-        orderItem.innerHTML = `
-          <img src="${item.image}" alt="${item.name}">
-          <h4>${item.name}</h4>
-          <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-          <p>Jumlah: ${item.quantity}</p>
-          <textarea class="comment-input" placeholder="Tulis komentar..."></textarea>
-          <input type="number" class="rating-input" min="1" max="5" placeholder="Rating (1-5)" />
-          <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
-        `;
-        orderItemsContainer.appendChild(orderItem);
+      if (Array.isArray(order.items)) {
+        order.items.forEach(item => {
+          const orderItem = document.createElement('div');
+          orderItem.classList.add('order-item');
+          orderItem.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <h4>${item.name}</h4>
+            <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+            <p>Jumlah: ${item.quantity}</p>
+            <textarea class="comment-input" placeholder="Tulis komentar..."></textarea>
+            <input type="number" class="rating-input" min="1" max="5" placeholder="Rating (1-5)" />
+            <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
+          `;
+          orderItemsContainer.appendChild(orderItem);
 
-        const saveFeedbackButton = orderItem.querySelector('.save-feedback-button');
-        saveFeedbackButton.addEventListener('click', async () => {
-          const rating = orderItem.querySelector('.rating-input').value;
-          const comment = orderItem.querySelector('.comment-input').value;
+          const saveFeedbackButton = orderItem.querySelector('.save-feedback-button');
+          saveFeedbackButton.addEventListener('click', async () => {
+            const rating = orderItem.querySelector('.rating-input').value;
+            const comment = orderItem.querySelector('.comment-input').value;
 
-          if (rating && comment) {
-            try {
-              await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
-              alert('Rating dan komentar berhasil disimpan.');
+            if (rating && comment) {
+              try {
+                await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
+                alert('Rating dan komentar berhasil disimpan.');
 
-              // Pindahkan pesanan ke completed-orders dan reload halaman
-              await OrderData.completeOrder();
-              location.reload();
-            } catch (error) {
-              alert('Gagal menyimpan rating dan komentar: ' + error.message);
-              console.log(error); // Menambahkan console.log untuk menampilkan detail error
+                // Pindahkan pesanan ke completed-orders dan reload halaman
+                await OrderData.completeOrder();
+                location.reload();
+              } catch (error) {
+                alert('Gagal menyimpan rating dan komentar: ' + error.message);
+                console.log(error); // Menambahkan console.log untuk menampilkan detail error
+              }
+            } else {
+              alert('Silakan isi rating dan komentar.');
             }
-          } else {
-            alert('Silakan isi rating dan komentar.');
-          }
+          });
         });
-      });
+      } else {
+        orderItemsContainer.innerHTML = '<p>Tidak ada barang dalam pesanan ini.</p>';
+      }
     } else {
       orderDetailsContainer.innerHTML = '<p>Tidak ada pesanan yang sedang diproses.</p>';
     }
