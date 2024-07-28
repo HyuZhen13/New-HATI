@@ -27,12 +27,8 @@ const OrderPage = {
 
     const order = await OrderData.getCurrentOrder();
     if (order) {
-      // Mendapatkan total harga dari elemen di halaman keranjang
-      const totalPriceElement = document.querySelector('.total-price');
+      // Mendapatkan total harga dari order.totalPrice
       let totalPrice = order.totalPrice;
-      if (totalPriceElement) {
-        totalPrice = parseFloat(totalPriceElement.textContent.replace(/[^\d.-]/g, ''));
-      }
 
       orderDetailsContainer.innerHTML = `
         <h2>Pesanan Anda</h2>
