@@ -2,81 +2,81 @@
 /* eslint-disable object-shorthand */
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { PDFDocument } from 'pdf-lib';
 import UserInfo from './user-info';
-import { generateOrderPDF } from './pdf-utils'; // Import utilitas untuk membuat PDF
 
 class OrderData {
-  // Mengambil pesanan terkini pengguna
-  static async getCurrentOrder() {
-    const db = getDatabase();
+  // Membuat PDF berisi detail pesanan
+  static async createOrderPdf(orderId, orderDetails) {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+
+    page.drawText(`Order ID: ${orderId}`, { x: 50, y: height - 50, size: 20 });
+    page.drawText(`Order Details:`, { x: 50, y: height - 100, size: 18 });
+
+    let yPosition = height - 150;
+    for (const item of orderDetails.items) {
+      page.drawText(`Product: ${item.name}`, { x: 50, y: yPosition, size: 16 });
+      page.drawText(`Price: ${item.price}`, { x: 50, y: yPosition - 20, size: 16 });
+      page.drawText(`Quantity: ${item.quantity}`, { x: 50, y: yPosition - 40, size: 16 });
+      yPosition -= 80;
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    return blob;
+  }
+
+  // Meng-upload PDF ke Firebase Storage
+  static async uploadPdf(pdfBlob, orderId) {
+    const storage = getStorage();
     const userId = UserInfo.getUserInfo().uid;
-    const ordersRef = ref(db, `orders/${userId}`);
-    
+    const storageRefPath = `order-pdfs/${userId}/${orderId}.pdf`;
+    const pdfRef = storageRef(storage, storageRefPath);
+
     try {
-      const ordersSnapshot = await get(ordersRef);
-      if (!ordersSnapshot.exists()) {
-        return null;
-      }
-
-      const ordersData = ordersSnapshot.val();
-      const orderIds = Object.keys(ordersData);
-      
-      // Mengembalikan pesanan terbaru
-      if (orderIds.length > 0) {
-        const latestOrderId = orderIds[orderIds.length - 1];
-        return ordersData[latestOrderId];
-      }
-
-      return null;
+      await uploadBytes(pdfRef, pdfBlob);
+      const url = await getDownloadURL(pdfRef);
+      return url;
     } catch (error) {
-      console.error('Error fetching current order:', error);
+      console.error('Error uploading PDF:', error);
       throw error;
     }
   }
 
-  // Menyelesaikan pesanan terkini pengguna
-  static async completeOrder() {
+  // Menyelesaikan pesanan dan menyimpan PDF
+  static async completeOrder(orderId) {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
-    const ordersRef = ref(db, `orders/${userId}`);
+    const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
-    const storage = getStorage();
-    
+
     try {
-      const ordersSnapshot = await get(ordersRef);
-      if (!ordersSnapshot.exists()) {
-        throw new Error('Tidak ada pesanan yang ditemukan.');
-      }
+      const orderSnapshot = await get(orderRef);
+      if (orderSnapshot.exists()) {
+        const orderData = orderSnapshot.val();
 
-      const ordersData = ordersSnapshot.val();
-      const orderIds = Object.keys(ordersData);
+        // Membuat PDF dan meng-upload
+        const pdfBlob = await this.createOrderPdf(orderId, orderData);
+        const pdfUrl = await this.uploadPdf(pdfBlob, orderId);
 
-      if (orderIds.length > 0) {
-        const latestOrderId = orderIds[orderIds.length - 1];
-        const orderData = ordersData[latestOrderId];
+        // Menyimpan URL PDF ke data pesanan
+        await set(orderRef, {
+          ...orderData,
+          pdfUrl: pdfUrl,
+        });
 
-        const orderRef = ref(db, `orders/${userId}/${latestOrderId}`);
-        
-        // Perbarui status pesanan menjadi selesai
-        await update(orderRef, { status: 'completed' });
+        // Menyimpan data pesanan ke completed-orders
+        await set(ref(db, `completed-orders/${userId}/${orderId}`), {
+          ...orderData,
+          pdfUrl: pdfUrl,
+        });
 
-        // Pindahkan pesanan ke completed-orders
-        await set(ref(db, `completed-orders/${userId}/${latestOrderId}`), orderData);
-
-        // Hapus pesanan dari orders
+        // Menghapus pesanan dari orders
         await remove(orderRef);
 
-        // Buat dan unggah PDF pesanan
-        const pdfBlob = await generateOrderPDF(orderData);
-        const pdfRef = storageRef(storage, `order-pdfs/${userId}/${latestOrderId}.pdf`);
-        await uploadBytes(pdfRef, pdfBlob);
-
-        const pdfUrl = await getDownloadURL(pdfRef);
-
-        // Simpan URL PDF di database
-        await update(ref(db, `completed-orders/${userId}/${latestOrderId}`), { pdfUrl });
-
-        return { orderData, pdfUrl };
+        return orderData;
       } else {
         throw new Error('Tidak ada pesanan yang dapat diselesaikan.');
       }
@@ -93,26 +93,21 @@ class OrderData {
     const feedbackRef = ref(db, `product-feedback/${productId}/${userId}`);
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
-
     try {
       // Menyimpan umpan balik
       await set(feedbackRef, { rating, comment });
-
       // Memperbarui data pesanan
       const orderSnapshot = await get(orderRef);
       if (!orderSnapshot.exists()) {
         throw new Error('Pesanan tidak ditemukan.');
       }
-
       const orderData = orderSnapshot.val();
       const itemIndex = orderData.items.findIndex(item => item.id === productId);
-
       if (itemIndex > -1) {
         const item = orderData.items[itemIndex];
         item.rating = rating;
         item.comment = comment;
         orderData.items[itemIndex] = item;
-
         // Update order data dan completed orders data
         await update(orderRef, { items: orderData.items });
         await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
@@ -129,19 +124,16 @@ class OrderData {
   static async getProductFeedback(productId) {
     const db = getDatabase();
     const feedbackRef = ref(db, `product-feedback/${productId}`);
-
     try {
       const feedbackSnapshot = await get(feedbackRef);
       if (!feedbackSnapshot.exists()) {
         return [];
       }
-
       const feedbackData = feedbackSnapshot.val();
       const feedbacks = Object.entries(feedbackData).map(([userId, feedback]) => ({
         userId,
         ...feedback
       }));
-
       console.log('Data umpan balik produk diambil dari Firebase:', feedbacks);
       return feedbacks;
     } catch (error) {
@@ -154,7 +146,6 @@ class OrderData {
   static async getCompletedOrders(userId) {
     const db = getDatabase();
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
-
     try {
       const completedOrdersSnapshot = await get(completedOrdersRef);
       if (completedOrdersSnapshot.exists()) {
@@ -172,7 +163,6 @@ class OrderData {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
     const orderRef = ref(db, `completed-orders/${userId}/${orderId}`);
-
     try {
       await remove(orderRef);
     } catch (error) {
