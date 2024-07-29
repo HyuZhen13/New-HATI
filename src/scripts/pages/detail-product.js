@@ -3,6 +3,7 @@ import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import CartData from '../utils/cart-data'; // Import CartData untuk menyimpan ke keranjang
+import OrderData from '../utils/order-data'; // Import OrderData untuk mendapatkan komentar dan rating
 
 const DetailProductPage = {
   async render() {
@@ -30,7 +31,6 @@ const DetailProductPage = {
 
   async afterRender() {
     const url = UrlParser.parseActiveUrlCaseSensitive();
-
     const product = await ProductData.getProductById(url.id);
     const productAll = await ProductData.getProduct();
     const store = await UserData.getUserData(product.uid);
@@ -61,17 +61,21 @@ const DetailProductPage = {
     const addToCart = document.querySelector('#add-to-cart');
     addToCart.addEventListener('click', async (event) => {
       event.preventDefault();
-      const cartItem = {
-        id: product.id,
-        name: product.name,
-        image: product.image,
-        price: product.price,
-        quantity: 1, // default quantity to 1
-        uid: product.uid,
-      };
-      await CartData.addCartItem(cartItem);
-      alert('Produk telah ditambahkan ke keranjang');
-      window.location.href = '#/cart';
+      if (product.stock > 0) {
+        const cartItem = {
+          id: product.id,
+          name: product.name,
+          image: product.image,
+          price: product.price,
+          quantity: 1, // default quantity to 1
+          uid: product.uid,
+        };
+        await CartData.addCartItem(cartItem);
+        alert('Produk telah ditambahkan ke keranjang');
+        window.location.href = '#/cart';
+      } else {
+        alert('Stok produk tidak mencukupi.');
+      }
     });
 
     storeDetail.innerHTML = `
@@ -108,13 +112,14 @@ const DetailProductPage = {
     });
     if (moreProduct.childElementCount === 0) {
       const productText = document.createElement('h5');
-      productText.innerText = 'This store just have one product.';
+      productText.innerText = 'Toko ini hanya memiliki satu produk.';
       moreProduct.appendChild(productText);
     }
 
     // Menambahkan bagian untuk menampilkan komentar dan rating produk
-    if (product.feedback) {
-      product.feedback.forEach((feedback) => {
+    const feedbacks = await OrderData.getFeedbackByProductId(product.id);
+    if (feedbacks) {
+      feedbacks.forEach((feedback) => {
         const feedbackItem = document.createElement('div');
         feedbackItem.innerHTML = `
           <div class="feedback-item">
