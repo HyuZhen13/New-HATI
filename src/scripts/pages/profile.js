@@ -241,7 +241,7 @@ const ProfilePage = {
               const notificationItem = document.createElement('div');
               notificationItem.innerHTML = `
                 <div class="notification-card">
-                  <p class="notification-text">New order for ${item.name} from ${order.buyerName}</p>
+                  <p class="notification-text">Ada pesanan baru untuk ${item.name} dari ${order.buyerName}</p>
                 </div>
               `;
               notificationItem.setAttribute('class', 'notification-item');
@@ -261,6 +261,12 @@ const ProfilePage = {
       }
     } catch (error) {
       console.log('Error getting notifications:', error.message);
+    }
+
+    // Show pop-up notification if there are new orders
+    const notificationCount = notificationList.childElementCount;
+    if (notificationCount > 0) {
+      alert('Ada pesanan baru');
     }
   },
 };
