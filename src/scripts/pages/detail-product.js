@@ -1,9 +1,7 @@
-/* eslint-disable max-len */
 import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import CartData from '../utils/cart-data'; // Import CartData untuk menyimpan ke keranjang
-import OrderData from '../utils/order-data'; // Import OrderData untuk mendapatkan komentar dan rating
 
 const DetailProductPage = {
   async render() {
@@ -47,7 +45,7 @@ const DetailProductPage = {
       <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</p>
       <p>Stok: ${product.stock}</p>
       <button id="buy-now">Hubungi Untuk Memesan</button>
-      <button id="add-to-cart">Tambah ke Keranjang</button>
+      <button id="add-to-cart" ${product.stock <= 0 ? 'disabled' : ''}>Tambah ke Keranjang</button>
       <p>${product.desc}</p>
     </div>
     `;
@@ -61,20 +59,21 @@ const DetailProductPage = {
     const addToCart = document.querySelector('#add-to-cart');
     addToCart.addEventListener('click', async (event) => {
       event.preventDefault();
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        image: product.image,
+        price: product.price,
+        quantity: 1, // default quantity to 1
+        uid: product.uid,
+      };
+      
       if (product.stock > 0) {
-        const cartItem = {
-          id: product.id,
-          name: product.name,
-          image: product.image,
-          price: product.price,
-          quantity: 1, // default quantity to 1
-          uid: product.uid,
-        };
         await CartData.addCartItem(cartItem);
         alert('Produk telah ditambahkan ke keranjang');
         window.location.href = '#/cart';
       } else {
-        alert('Stok produk tidak mencukupi.');
+        alert('Produk tidak tersedia dalam stok.');
       }
     });
 
@@ -117,9 +116,8 @@ const DetailProductPage = {
     }
 
     // Menambahkan bagian untuk menampilkan komentar dan rating produk
-    const feedbacks = await OrderData.getFeedbackByProductId(product.id);
-    if (feedbacks) {
-      feedbacks.forEach((feedback) => {
+    if (product.feedback) {
+      product.feedback.forEach((feedback) => {
         const feedbackItem = document.createElement('div');
         feedbackItem.innerHTML = `
           <div class="feedback-item">
