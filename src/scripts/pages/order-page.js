@@ -27,7 +27,6 @@ const OrderPage = {
 
     const order = await OrderData.getCurrentOrder();
     if (order) {
-
       orderDetailsContainer.innerHTML = `
         <h2>Pesanan Anda</h2>
         <img src="${order.paymentProof}" alt="Bukti Pembayaran">
@@ -56,16 +55,18 @@ const OrderPage = {
             const comment = orderItem.querySelector('.comment-input').value;
 
             if (rating && comment) {
-              try {
-                await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
-                alert('Rating dan komentar berhasil disimpan.');
+              const confirmation = confirm('Apakah Anda yakin ingin menyimpan rating dan komentar?');
+              if (confirmation) {
+                try {
+                  await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
+                  console.log('Rating dan komentar berhasil disimpan.');
 
-                // Pindahkan pesanan ke completed-orders dan reload halaman
-                await OrderData.completeOrder();
-                location.reload();
-              } catch (error) {
-                alert('Gagal menyimpan rating dan komentar: ' + error.message);
-                console.log(error); // Menambahkan console.log untuk menampilkan detail error
+                  // Pindahkan pesanan ke completed-orders dan reload halaman
+                  await OrderData.completeOrder();
+                  location.reload();
+                } catch (error) {
+                  console.log('Gagal menyimpan rating dan komentar:', error);
+                }
               }
             } else {
               alert('Silakan isi rating dan komentar.');
@@ -112,13 +113,15 @@ const OrderPage = {
 
           const deleteOrderButton = orderElement.querySelector('.delete-order-button');
           deleteOrderButton.addEventListener('click', async () => {
-            try {
-              await OrderData.deleteCompletedOrder(order.id);
-              alert('Pesanan berhasil dihapus.');
-              location.reload();
-            } catch (error) {
-              alert('Gagal menghapus pesanan: ' + error.message);
-              console.log(error); // Menambahkan console.log untuk menampilkan detail error
+            const confirmation = confirm('Apakah Anda yakin ingin menghapus pesanan ini?');
+            if (confirmation) {
+              try {
+                await OrderData.deleteCompletedOrder(order.id);
+                console.log('Pesanan berhasil dihapus.');
+                location.reload();
+              } catch (error) {
+                console.log('Gagal menghapus pesanan:', error);
+              }
             }
           });
         });
@@ -126,9 +129,8 @@ const OrderPage = {
         completedOrdersContainer.innerHTML = '<p>Tidak ada pesanan yang selesai.</p>';
       }
     } catch (error) {
-      console.error('Error fetching completed orders:', error);
+      console.log('Error fetching completed orders:', error);
       completedOrdersContainer.innerHTML = '<p>Gagal memuat pesanan selesai.</p>';
-      console.log(error); // Menambahkan console.log untuk menampilkan detail error
     }
   }
 };
