@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import UserInfo from '../utils/user-info';
@@ -8,42 +7,42 @@ import OrderData from '../utils/order-data';
 const ProfilePage = {
   async render() {
     return `
-    <article class="profile-article"> 
-    <div class="profile-container">
-      <form name="profileForm" id="profile-form" method="POST" enctype="multipart/form-data">
-        <div>
-          <img id="profile-photo" src="./images/profile.png" alt="Profile Photo">
-        </div>
-        <input placeholder="Store Name" name="userName" id="userName">
-        <input placeholder="Phone Number" name="userPhone" id="userPhone">
-        <input placeholder="Social Media (Link)" name="userSocmed" id="userSocmed">
-        <textarea placeholder="Description" name="userDesc" id="userDesc"></textarea>
-        <input type="file" name="profileImage" id="profileImgInput" style="display:none;">
-        <label id="verificationLabel">Submit Verification (PDF only)</label>
-        <input type="file" name="storeVerification" id="storeVerification" accept="application/pdf">
-        <button type="submit">Save Changes</button>
-        <button id="logout-btn">Logout</button>
-      </form>
-    </div>
-  </article>
+    <article class="profile-article">
+      <div class="profile-container">
+        <form name="profileForm" id="profile-form" method="POST" enctype="multipart/form-data">
+          <div>
+            <img id="profile-photo" src="./images/profile.png" alt="Profile Photo">
+          </div>
+          <input placeholder="Store Name" name="userName" id="userName">
+          <input placeholder="Phone Number" name="userPhone" id="userPhone">
+          <input placeholder="Social Media (Link)" name="userSocmed" id="userSocmed">
+          <textarea placeholder="Description" name="userDesc" id="userDesc"></textarea>
+          <input type="file" name="profileImage" id="profileImgInput" style="display:none;">
+          <label id="verificationLabel">Submit Verification (PDF only)</label>
+          <input type="file" name="storeVerification" id="storeVerification" accept="application/pdf">
+          <button type="submit">Save Changes</button>
+          <button id="logout-btn">Logout</button>
+        </form>
+      </div>
+    </article>
 
-  <article class="product-article">
-    <div class="product-container">
-      <a id="addProduct" href="#/add-product">Add Product +</a>
-      <h2>My Products</h2>
-      <div id="product-list"></div>
-    </div>
-  </article>
+    <article class="product-article">
+      <div class="product-container">
+        <a id="addProduct" href="#/add-product">Add Product +</a>
+        <h2>My Products</h2>
+        <div id="product-list"></div>
+      </div>
+    </article>
 
-  <article class="order-article">
-    <div class="order-container">
-      <h2>Sold Products</h2>
-      <div id="order-list"></div>
-    </div>
-  </article>
+    <article class="order-article">
+      <div class="order-container">
+        <h2>Sold Products</h2>
+        <div id="order-list"></div>
+      </div>
+    </article>
     `;
   },
-  
+
   async afterRender() {
     const profileImg = document.querySelector('#profile-photo');
     const profileForm = document.querySelector('#profile-form');
@@ -198,8 +197,8 @@ const ProfilePage = {
                   <div class="order-card-body">
                     <h5 class="order-card-title">${item.name}</h5>
                     <p class="order-card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                    <p class="order-card-rating">Rating: ${item.rating || 'Not rated yet'}</p>
-                    <p class="order-card-comment">Comment: ${item.comment || 'No comment'}</p>
+                    <p class="order-card-rating">Rating: ${item.rating}</p>
+                    <p class="order-card-review">Review: ${item.review}</p>
                   </div>
                 </div>
               `;
@@ -215,7 +214,7 @@ const ProfilePage = {
         }
       } else {
         const orderText = document.createElement('h4');
-        orderText.innerText = 'Orders not found.';
+        orderText.innerText = 'No orders found.';
         orderList.appendChild(orderText);
       }
     } catch (error) {
