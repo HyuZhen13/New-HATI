@@ -100,7 +100,7 @@ class OrderData {
         item.comment = comment;
         orderData.items[itemIndex] = item;
 
-        // Update order data and completed orders data
+        // Update order data dan completed orders data
         await update(orderRef, { items: orderData.items });
         await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
       } else {
