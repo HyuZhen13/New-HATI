@@ -3,6 +3,7 @@ import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import UserInfo from '../utils/user-info';
 import VerificationData from '../utils/verification-data';
+import OrderData from '../utils/order-data'; // Import OrderData
 
 const ProfilePage = {
   async render() {
@@ -27,13 +28,17 @@ const ProfilePage = {
   </article>
 
   <article class="product-article">
-    
     <div class="product-container">
-    <a id="addProduct" href="#/add-product" >Add Product +</a>
-    <h2>My Product</h2>
-      <div id="product-list">
-        
-      </div>
+      <a id="addProduct" href="#/add-product" >Add Product +</a>
+      <h2>My Product</h2>
+      <div id="product-list"></div>
+    </div>
+  </article>
+
+  <article class="order-article">
+    <div class="order-container">
+      <h2>My Orders</h2>
+      <div id="order-list"></div>
     </div>
   </article>
         `;
@@ -89,7 +94,7 @@ const ProfilePage = {
       console.log(error.message);
     }
 
-    profileForm.addEventListener('submit', (event) => {
+    profileForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const userData = {
         name: '', phone: '', socmed: '', desc: '', seller: '', email: UserInfo.getUserInfo().email, uid: UserInfo.getUserInfo().uid,
@@ -105,15 +110,17 @@ const ProfilePage = {
       const imgFile = document.querySelector('#profileImgInput').files[0];
 
       try {
-        UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
-        if (imgFile) UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
-        if (verificationPdf) VerificationData.submitVerification(verification, verificationPdf.files[0]);
+        await UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
+        if (imgFile) await UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
+        if (verificationPdf.files.length > 0) await VerificationData.submitVerification(verification, verificationPdf.files[0]);
       } catch (e) {
         console.log(e.message);
       } finally {
         this.render();
         // eslint-disable-next-line no-alert
-        alert('Succesfully Updated.');
+        if (confirm('Succesfully Updated. Do you want to reload the page?')) {
+          location.reload();
+        }
       }
     });
 
@@ -152,6 +159,48 @@ const ProfilePage = {
       const productText = document.createElement('h4');
       productText.innerText = 'Product does not exist.';
       productUserList.appendChild(productText);
+    }
+
+    // Menambahkan daftar pesanan
+    const orderUserList = document.querySelector('#order-list');
+    try {
+      const orders = await OrderData.getCurrentOrder();
+      if (orders) {
+        Object.values(orders).reverse().forEach((order) => {
+          const orderItem = document.createElement('div');
+          orderItem.innerHTML = `
+            <div class="order-card">
+              <h5>Order ID: ${order.id}</h5>
+              <p>Status: ${order.status}</p>
+              <p>Order Date: ${new Date(order.timestamp).toLocaleDateString()}</p>
+              <h6>Items:</h6>
+              <ul>
+                ${order.items.map(item => `
+                  <li>
+                    ${item.name} - ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)} x ${item.quantity}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          `;
+          orderItem.setAttribute('class', 'order-item');
+          orderUserList.appendChild(orderItem);
+        });
+        if (orderUserList.childElementCount === 0) {
+          const orderText = document.createElement('h4');
+          orderText.innerText = 'You have no orders.';
+          orderUserList.appendChild(orderText);
+        }
+      } else {
+        const orderText = document.createElement('h4');
+        orderText.innerText = 'Orders do not exist.';
+        orderUserList.appendChild(orderText);
+      }
+    } catch (error) {
+      console.log('Error fetching orders:', error);
+      const orderText = document.createElement('h4');
+      orderText.innerText = 'Failed to load orders.';
+      orderUserList.appendChild(orderText);
     }
   },
 };
