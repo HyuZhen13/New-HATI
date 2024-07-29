@@ -170,9 +170,9 @@ html {
     width: 100%;
     text-align: center;
   }
-
-  .total-price {
-    text-align: left;
+  
+  .order-item img {
+    max-height: 300px; /* Further adjusted for smaller screens */
   }
 }
 
@@ -180,10 +180,6 @@ html {
   .cart-item img, .order-item img, .order-item-detail img {
     width: 60px;
     height: 60px;
-  }
-
-  .order-item img {
-    max-height: 300px; /* Further adjusted for smaller screens */
   }
 
   .quantity-input {
