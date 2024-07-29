@@ -155,7 +155,7 @@ const ProfilePage = {
                   <h5 class="card-title">${item.name}</h5>
                 </div>
                 <div class="card-footer">
-                  <small class="text-muted">${item.name} <i class="fa-solid fa-circle-check fa-lg"></i></small>
+                  <small class="text-muted">${item.seller} <i class="fa-solid fa-circle-check fa-lg"></i></small>
                 </div>
               </div>
             `;
@@ -185,10 +185,10 @@ const ProfilePage = {
 
     // Get sold products and reviews
     try {
-      const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
+      const orders = await OrderData.getCompletedOrders();
       if (orders) {
         console.log('Order data:', orders);
-        Object.values(orders).reverse().forEach((order) => {
+        orders.forEach((order) => {
           order.items.forEach((item) => {
             if (item.sellerId === UserInfo.getUserInfo().uid) {
               const orderItem = document.createElement('div');
