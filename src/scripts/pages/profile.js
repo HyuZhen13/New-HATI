@@ -40,6 +40,13 @@ const ProfilePage = {
         <div id="order-list"></div>
       </div>
     </article>
+
+    <article class="notification-article">
+      <div class="notification-container">
+        <h2>Notifications</h2>
+        <div id="notification-list"></div>
+      </div>
+    </article>
     `;
   },
 
@@ -219,6 +226,41 @@ const ProfilePage = {
       }
     } catch (error) {
       console.log('Error getting orders:', error.message);
+    }
+
+    const notificationList = document.querySelector('#notification-list');
+
+    // Get notifications for new orders
+    try {
+      const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
+      if (orders) {
+        console.log('Notification data:', orders);
+        orders.forEach((order) => {
+          order.items.forEach((item) => {
+            if (item.sellerId === UserInfo.getUserInfo().uid) {
+              const notificationItem = document.createElement('div');
+              notificationItem.innerHTML = `
+                <div class="notification-card">
+                  <p class="notification-text">New order for ${item.name} from ${order.buyerName}</p>
+                </div>
+              `;
+              notificationItem.setAttribute('class', 'notification-item');
+              notificationList.appendChild(notificationItem);
+            }
+          });
+        });
+        if (notificationList.childElementCount === 0) {
+          const notificationText = document.createElement('h4');
+          notificationText.innerText = 'No notifications.';
+          notificationList.appendChild(notificationText);
+        }
+      } else {
+        const notificationText = document.createElement('h4');
+        notificationText.innerText = 'No notifications found.';
+        notificationList.appendChild(notificationText);
+      }
+    } catch (error) {
+      console.log('Error getting notifications:', error.message);
     }
   },
 };
