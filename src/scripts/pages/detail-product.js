@@ -1,36 +1,35 @@
-/* eslint-disable max-len */
 import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
-import CartData from '../utils/cart-data'; // Import CartData untuk menyimpan ke keranjang
+import CartData from '../utils/cart-data';
+import OrderData from '../utils/order-data';
 
 const DetailProductPage = {
   async render() {
     return `
-    <article class="product-detail-article">
-      <div id="product-detail-container"></div>
-      <div id="btn-product">
-        <button id="store-detail">
-          <img>
-          <small class="text-muted">Penjual 
-          <i class="fa-solid fa-circle-check fa-lg"></i></small>
-        </button>
-      </div>
-      <div id="more-product-container">
-        <h2>Other Items</h2>
-        <div id="more-product"></div>
-      </div>
-      <div id="feedback-container">
-        <h2>Ulasan Produk</h2>
-        <div id="feedback-list"></div>
-      </div>
-    </article>
+      <article class="product-detail-article">
+        <div id="product-detail-container"></div>
+        <div id="btn-product">
+          <button id="store-detail">
+            <img>
+            <small class="text-muted">Penjual 
+            <i class="fa-solid fa-circle-check fa-lg"></i></small>
+          </button>
+        </div>
+        <div id="more-product-container">
+          <h2>Other Items</h2>
+          <div id="more-product"></div>
+        </div>
+        <div id="product-feedback-container">
+          <h2>Rating dan Komentar</h2>
+          <div id="product-feedback"></div>
+        </div>
+      </article>
     `;
   },
 
   async afterRender() {
     const url = UrlParser.parseActiveUrlCaseSensitive();
-
     const product = await ProductData.getProductById(url.id);
     const productAll = await ProductData.getProduct();
     const store = await UserData.getUserData(product.uid);
@@ -38,18 +37,18 @@ const DetailProductPage = {
     const productDetailContainer = document.querySelector('#product-detail-container');
     const storeDetail = document.querySelector('#store-detail');
     const moreProduct = document.querySelector('#more-product');
-    const feedbackList = document.querySelector('#feedback-list');
+    const productFeedbackContainer = document.querySelector('#product-feedback');
 
     productDetailContainer.innerHTML = `
-    <img src="${product.image}">
-    <div>
-      <h3>${product.name}</h3>
-      <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</p>
-      <p>Stok: ${product.stock}</p>
-      <button id="buy-now">Hubungi Untuk Memesan</button>
-      <button id="add-to-cart">Tambah ke Keranjang</button>
-      <p>${product.desc}</p>
-    </div>
+      <img src="${product.image}">
+      <div>
+        <h3>${product.name}</h3>
+        <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</p>
+        <p>Stok: ${product.stock}</p>
+        <button id="buy-now">Hubungi Untuk Memesan</button>
+        <button id="add-to-cart">Tambah ke Keranjang</button>
+        <p>${product.desc}</p>
+      </div>
     `;
 
     const buyNow = document.querySelector('#buy-now');
@@ -69,9 +68,16 @@ const DetailProductPage = {
         quantity: 1, // default quantity to 1
         uid: product.uid,
       };
-      await CartData.addCartItem(cartItem);
-      alert('Produk telah ditambahkan ke keranjang');
-      window.location.href = '#/cart';
+      const confirmation = confirm('Apakah Anda yakin ingin menambahkan produk ini ke keranjang?');
+      if (confirmation) {
+        try {
+          await CartData.addCartItem(cartItem);
+          console.log('Produk telah ditambahkan ke keranjang.');
+          window.location.href = '#/cart';
+        } catch (error) {
+          console.log('Gagal menambahkan produk ke keranjang:', error);
+        }
+      }
     });
 
     storeDetail.innerHTML = `
@@ -108,27 +114,26 @@ const DetailProductPage = {
     });
     if (moreProduct.childElementCount === 0) {
       const productText = document.createElement('h5');
-      productText.innerText = 'This store just have one product.';
+      productText.innerText = 'Toko ini hanya memiliki satu produk.';
       moreProduct.appendChild(productText);
     }
 
-    // Menambahkan bagian untuk menampilkan komentar dan rating produk
-    if (product.feedback) {
-      product.feedback.forEach((feedback) => {
+    // Menampilkan rating dan komentar produk
+    const feedbackData = await ProductData.getProductFeedback(product.id);
+    if (feedbackData.length > 0) {
+      feedbackData.forEach(feedback => {
         const feedbackItem = document.createElement('div');
+        feedbackItem.classList.add('feedback-item');
         feedbackItem.innerHTML = `
-          <div class="feedback-item">
-            <p><strong>${feedback.user}</strong></p>
-            <p>Rating: ${feedback.rating} / 5</p>
-            <p>${feedback.comment}</p>
-          </div>
+          <p>Rating: ${feedback.rating} / 5</p>
+          <p>Komentar: ${feedback.comment}</p>
         `;
-        feedbackList.appendChild(feedbackItem);
+        productFeedbackContainer.appendChild(feedbackItem);
       });
     } else {
-      feedbackList.innerHTML = '<p>Tidak ada ulasan untuk produk ini.</p>';
+      productFeedbackContainer.innerHTML = '<p>Tidak ada ulasan untuk produk ini.</p>';
     }
-  },
+  }
 };
 
 export default DetailProductPage;
