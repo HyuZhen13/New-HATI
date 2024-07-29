@@ -1,7 +1,8 @@
 import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
-import OrderData from '../utils/order-data';
+import CartData from '../utils/cart-data';
+import OrderData from '../utils/order-data'; // Import OrderData untuk mendapatkan umpan balik produk
 
 const DetailProductPage = {
   async render() {
@@ -26,18 +27,15 @@ const DetailProductPage = {
       </article>
     `;
   },
-
   async afterRender() {
     const url = UrlParser.parseActiveUrlCaseSensitive();
     const product = await ProductData.getProductById(url.id);
     const productAll = await ProductData.getProduct();
     const store = await UserData.getUserData(product.uid);
-
     const productDetailContainer = document.querySelector('#product-detail-container');
     const storeDetail = document.querySelector('#store-detail');
     const moreProduct = document.querySelector('#more-product');
     const feedbackList = document.querySelector('#feedback-list');
-
     productDetailContainer.innerHTML = `
       <img src="${product.image}">
       <div>
@@ -49,13 +47,11 @@ const DetailProductPage = {
         <p>${product.desc}</p>
       </div>
     `;
-
     const buyNow = document.querySelector('#buy-now');
     buyNow.addEventListener('click', (event) => {
       event.preventDefault();
       window.open(`https://wa.me/${store.phone}`, '_blank');
     });
-
     const addToCart = document.querySelector('#add-to-cart');
     addToCart.addEventListener('click', async (event) => {
       event.preventDefault();
@@ -76,7 +72,6 @@ const DetailProductPage = {
         alert('Produk tidak tersedia dalam stok.');
       }
     });
-
     storeDetail.innerHTML = `
       <img src="${store.photo ? store.photo : './images/profile.png'}">
       <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
@@ -85,7 +80,6 @@ const DetailProductPage = {
       event.preventDefault();
       location.href = `#/store/${product.uid}`;
     });
-
     Object.values(productAll).reverse().forEach((item) => {
       const productItem = document.createElement('div');
       productItem.innerHTML = `
@@ -115,30 +109,19 @@ const DetailProductPage = {
       moreProduct.appendChild(productText);
     }
 
-    // Menambahkan bagian untuk menampilkan semua komentar dan rating produk
+    // Menambahkan bagian untuk menampilkan komentar dan rating produk
     try {
-      const orders = await OrderData.getOrdersByProductId(product.id); // Update method to get all orders by product ID
-      if (orders.length > 0) {
-        // Create a map to store user names
-        const userNames = {};
-        for (const order of orders) {
-          const user = await UserData.getUserData(order.userId);
-          userNames[order.userId] = user.name;
-        }
-
-        orders.forEach(order => {
-          order.items.forEach(item => {
-            if (item.id === product.id) {
-              const feedbackItem = document.createElement('div');
-              feedbackItem.classList.add('feedback-item');
-              feedbackItem.innerHTML = `
-                <p><strong>${userNames[order.userId] || 'Unknown User'}</strong></p>
-                <p>Rating: ${item.rating || 'No rating'} / 5</p>
-                <p>${item.comment || 'No review'}</p>
-              `;
-              feedbackList.appendChild(feedbackItem);
-            }
-          });
+      const feedbacks = await OrderData.getProductFeedback(product.id);
+      if (feedbacks.length > 0) {
+        feedbacks.forEach(feedback => {
+          const feedbackItem = document.createElement('div');
+          feedbackItem.classList.add('feedback-item');
+          feedbackItem.innerHTML = `
+            <p><strong>${feedback.userId}</strong></p>
+            <p>Rating: ${feedback.rating} / 5</p>
+            <p>${feedback.comment}</p>
+          `;
+          feedbackList.appendChild(feedbackItem);
         });
       } else {
         feedbackList.innerHTML = '<p>Tidak ada ulasan untuk produk ini.</p>';
@@ -149,5 +132,4 @@ const DetailProductPage = {
     }
   },
 };
-
 export default DetailProductPage;
