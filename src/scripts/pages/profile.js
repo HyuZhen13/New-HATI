@@ -60,20 +60,20 @@ const ProfilePage = {
     const userDesc = document.querySelector('#userDesc');
     const verificationPdf = document.querySelector('#storeVerification');
     const verificationLabel = document.querySelector('#verificationLabel');
+    const profileImgInput = document.querySelector('#profileImgInput');
 
     // Logout
     logout.addEventListener('click', (event) => {
       event.preventDefault();
       UserInfo.deleteUserInfo();
       location.href = '#/';
-      location.reload();
     });
 
     // Upload profile image
-    const profileImgInput = document.querySelector('#profileImgInput');
     profileImg.addEventListener('click', () => {
       profileImgInput.click();
     });
+
     profileImgInput.addEventListener('change', async () => {
       const file = profileImgInput.files[0];
       if (file) {
@@ -119,25 +119,26 @@ const ProfilePage = {
         uid: UserInfo.getUserInfo().uid,
       };
 
-      const imgFile = document.querySelector('#profileImgInput').files[0];
+      const imgFile = profileImgInput.files[0];
+      const verificationFile = verificationPdf.files[0];
 
       try {
         console.log('Saving user data:', userData);
         await UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
+        
         if (imgFile) {
           console.log('Uploading profile photo:', imgFile);
           await UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
         }
-        if (verificationPdf.files[0]) {
-          console.log('Submitting verification:', verificationPdf.files[0]);
-          await VerificationData.submitVerification({ uid: UserInfo.getUserInfo().uid }, verificationPdf.files[0]);
+        
+        if (verificationFile) {
+          console.log('Submitting verification:', verificationFile);
+          await VerificationData.submitVerification({ uid: UserInfo.getUserInfo().uid }, verificationFile);
         }
+
         alert('Successfully updated.');
       } catch (e) {
         console.log('Error saving changes:', e.message);
-      } finally {
-        // Re-render the page to reflect changes
-        location.reload();
       }
     });
 
@@ -171,6 +172,7 @@ const ProfilePage = {
             productUserList.appendChild(productItem);
           }
         });
+
         if (productUserList.childElementCount === 0) {
           const productText = document.createElement('h4');
           productText.innerText = 'You do not have any products.';
@@ -212,6 +214,7 @@ const ProfilePage = {
             }
           });
         });
+
         if (orderList.childElementCount === 0) {
           const orderText = document.createElement('h4');
           orderText.innerText = 'No products sold yet.';
@@ -228,40 +231,25 @@ const ProfilePage = {
 
     const notificationList = document.querySelector('#notification-list');
 
-    // Get notifications for new orders
+    // Get notifications for the seller
     try {
-      const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
-      if (orders) {
-        console.log('Notification data:', orders);
-        orders.forEach((order) => {
-          order.items.forEach((item) => {
-          order.items.forEach((item) => {
-            if (item.sellerId === UserInfo.getUserInfo().uid) {
-              const notificationItem = document.createElement('div');
-              notificationItem.innerHTML = `
-                <div class="notification-card">
-                  <p class="notification-message">Ada pesanan baru untuk produk: ${item.name}</p>
-                </div>
-              `;
-              notificationItem.setAttribute('class', 'notification-item');
-              notificationList.appendChild(notificationItem);
-            }
-          });
+      const notifications = await OrderData.getNotifications(UserInfo.getUserInfo().uid);
+      if (notifications && notifications.length > 0) {
+        notifications.forEach((notification) => {
+          const notificationItem = document.createElement('div');
+          notificationItem.className = 'notification-item';
+          notificationItem.innerText = notification.message;
+          notificationList.appendChild(notificationItem);
         });
-
-        // Show a pop-up notification for new orders
-        if (notificationList.childElementCount > 0) {
-          alert('Ada pesanan baru!');
-        }
       } else {
-        const notificationText = document.createElement('h4');
-        notificationText.innerText = 'No new notifications.';
-        notificationList.appendChild(notificationText);
+        const noNotificationText = document.createElement('p');
+        noNotificationText.innerText = 'No new notifications.';
+        notificationList.appendChild(noNotificationText);
       }
     } catch (error) {
       console.log('Error getting notifications:', error.message);
     }
-  }
+  },
 };
 
 export default ProfilePage;
