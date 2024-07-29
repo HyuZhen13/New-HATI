@@ -10,19 +10,19 @@ const ProfilePage = {
     return `
     <article class="profile-article"> 
     <div class="profile-container">
-    <form name="profileForm" id="profile-form" method="POST" enctype="multipart/form-data">
-          <div>
-            <img id="profile-photo" src="./images/profile.png">
-          </div>
-          <input placeholder="Store Name" name="userName" id="userName">
-          <input placeholder="Phone Number" name="userPhone" id="userPhone">
-          <input placeholder="Social Media (Link)" name="userSocmed" id="userSocmed">
-          <textarea placeholder="Description" name="userDesc" id="userDesc"></textarea>
-          <input type="file" name="profileImage" id="profileImgInput" style="display:none;">
-          <label id="verificationLabel">Submit Verification (PDF only)</label>
-          <input type="file" name="storeVerification" id="storeVerification" accept="application/pdf">
-          <button type="submit">Save Changes</button>
-          <button id="logout-btn">Logout</button>
+      <form name="profileForm" id="profile-form" method="POST" enctype="multipart/form-data">
+        <div>
+          <img id="profile-photo" src="./images/profile.png">
+        </div>
+        <input placeholder="Store Name" name="userName" id="userName">
+        <input placeholder="Phone Number" name="userPhone" id="userPhone">
+        <input placeholder="Social Media (Link)" name="userSocmed" id="userSocmed">
+        <textarea placeholder="Description" name="userDesc" id="userDesc"></textarea>
+        <input type="file" name="profileImage" id="profileImgInput" style="display:none;">
+        <label id="verificationLabel">Submit Verification (PDF only)</label>
+        <input type="file" name="storeVerification" id="storeVerification" accept="application/pdf">
+        <button type="submit">Save Changes</button>
+        <button id="logout-btn">Logout</button>
       </form>
     </div>
   </article>
@@ -30,7 +30,7 @@ const ProfilePage = {
   <article class="product-article">
     <div class="product-container">
       <a id="addProduct" href="#/add-product">Add Product +</a>
-      <h2>My Product</h2>
+      <h2>My Products</h2>
       <div id="product-list"></div>
     </div>
   </article>
@@ -43,6 +43,7 @@ const ProfilePage = {
   </article>
     `;
   },
+  
   async afterRender() {
     const profileImg = document.querySelector('#profile-photo');
     const profileForm = document.querySelector('#profile-form');
@@ -62,7 +63,7 @@ const ProfilePage = {
       location.reload();
     });
 
-    // Unggah gambar profil
+    // Upload profile image
     const profileImgInput = document.querySelector('#profileImgInput');
     profileImg.addEventListener('click', () => {
       profileImgInput.click();
@@ -78,10 +79,10 @@ const ProfilePage = {
       }
     });
 
-    // Mendapatkan data pengguna
+    // Get user data
     try {
       const userData = await UserData.getUserData(UserInfo.getUserInfo().uid);
-      console.log('Data pengguna:', userData);
+      console.log('User data:', userData);
 
       userName.value = userData.name || '';
       userPhone.value = userData.phone || '';
@@ -97,10 +98,10 @@ const ProfilePage = {
         verificationLabel.innerText = 'You Are Verified!';
       }
     } catch (error) {
-      console.log('Error mendapatkan data pengguna:', error.message);
+      console.log('Error getting user data:', error.message);
     }
 
-    // Menyimpan perubahan profil
+    // Save profile changes
     profileForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const userData = {
@@ -118,19 +119,19 @@ const ProfilePage = {
       const imgFile = document.querySelector('#profileImgInput').files[0];
 
       try {
-        console.log('Menyimpan data pengguna:', userData);
+        console.log('Saving user data:', userData);
         await UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
         if (imgFile) {
-          console.log('Mengunggah foto profil:', imgFile);
+          console.log('Uploading profile photo:', imgFile);
           await UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
         }
         if (verificationPdf.files[0]) {
-          console.log('Mengirim verifikasi:', verificationPdf.files[0]);
+          console.log('Submitting verification:', verificationPdf.files[0]);
           await VerificationData.submitVerification(verification, verificationPdf.files[0]);
         }
-        alert('Berhasil diperbarui.');
+        alert('Successfully updated.');
       } catch (e) {
-        console.log('Error saat menyimpan perubahan:', e.message);
+        console.log('Error saving changes:', e.message);
       } finally {
         this.render();
       }
@@ -138,12 +139,12 @@ const ProfilePage = {
 
     const productUserList = document.querySelector('#product-list');
 
-    // Mendapatkan produk pengguna
+    // Get user's products
     try {
-      const product = await ProductData.getProduct();
-      if (product) {
-        console.log('Data produk:', product);
-        Object.values(product).reverse().forEach((item) => {
+      const products = await ProductData.getProduct();
+      if (products) {
+        console.log('Product data:', products);
+        Object.values(products).reverse().forEach((item) => {
           if (item.uid === UserInfo.getUserInfo().uid) {
             const productItem = document.createElement('div');
             productItem.innerHTML = `
@@ -154,7 +155,7 @@ const ProfilePage = {
                   <h5 class="card-title">${item.name}</h5>
                 </div>
                 <div class="card-footer">
-                  <small class="text-muted">${item.seller} <i class="fa-solid fa-circle-check fa-lg"></i></small>
+                  <small class="text-muted">${item.name} <i class="fa-solid fa-circle-check fa-lg"></i></small>
                 </div>
               </div>
             `;
@@ -168,25 +169,25 @@ const ProfilePage = {
         });
         if (productUserList.childElementCount === 0) {
           const productText = document.createElement('h4');
-          productText.innerText = 'Anda belum memiliki produk.';
+          productText.innerText = 'You do not have any products.';
           productUserList.appendChild(productText);
         }
       } else {
         const productText = document.createElement('h4');
-        productText.innerText = 'Produk tidak ditemukan.';
+        productText.innerText = 'Products not found.';
         productUserList.appendChild(productText);
       }
     } catch (error) {
-      console.log('Error mendapatkan produk:', error.message);
+      console.log('Error getting products:', error.message);
     }
 
     const orderList = document.querySelector('#order-list');
 
-    // Mendapatkan produk terjual dan ulasan
+    // Get sold products and reviews
     try {
       const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
       if (orders) {
-        console.log('Data pesanan:', orders);
+        console.log('Order data:', orders);
         Object.values(orders).reverse().forEach((order) => {
           order.items.forEach((item) => {
             if (item.sellerId === UserInfo.getUserInfo().uid) {
@@ -197,8 +198,8 @@ const ProfilePage = {
                   <div class="order-card-body">
                     <h5 class="order-card-title">${item.name}</h5>
                     <p class="order-card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                    <p class="order-card-rating">Rating: ${item.rating || 'Belum diberi rating'}</p>
-                    <p class="order-card-comment">Komentar: ${item.comment || 'Belum ada komentar'}</p>
+                    <p class="order-card-rating">Rating: ${item.rating || 'Not rated yet'}</p>
+                    <p class="order-card-comment">Comment: ${item.comment || 'No comment'}</p>
                   </div>
                 </div>
               `;
@@ -209,16 +210,16 @@ const ProfilePage = {
         });
         if (orderList.childElementCount === 0) {
           const orderText = document.createElement('h4');
-          orderText.innerText = 'Belum ada produk terjual.';
+          orderText.innerText = 'No products sold yet.';
           orderList.appendChild(orderText);
         }
       } else {
         const orderText = document.createElement('h4');
-        orderText.innerText = 'Pesanan tidak ditemukan.';
+        orderText.innerText = 'Orders not found.';
         orderList.appendChild(orderText);
       }
     } catch (error) {
-      console.log('Error mendapatkan pesanan:', error.message);
+      console.log('Error getting orders:', error.message);
     }
   },
 };
