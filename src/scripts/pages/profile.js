@@ -12,7 +12,7 @@ const ProfilePage = {
     <div class="profile-container">
       <form name="profileForm" id="profile-form" method="POST" enctype="multipart/form-data">
         <div>
-          <img id="profile-photo" src="./images/profile.png">
+          <img id="profile-photo" src="./images/profile.png" alt="Profile Photo">
         </div>
         <input placeholder="Store Name" name="userName" id="userName">
         <input placeholder="Phone Number" name="userPhone" id="userPhone">
@@ -185,7 +185,7 @@ const ProfilePage = {
 
     // Get sold products and reviews
     try {
-      const orders = await OrderData.getCompletedOrders();
+      const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
       if (orders) {
         console.log('Order data:', orders);
         orders.forEach((order) => {
