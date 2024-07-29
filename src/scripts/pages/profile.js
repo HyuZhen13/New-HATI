@@ -41,10 +41,10 @@ const ProfilePage = {
       </div>
     </article>
 
-    <article class="notification-article">
-      <div class="notification-container">
-        <h2>Notifications</h2>
-        <div id="notification-list"></div>
+    <article class="pdf-article">
+      <div class="pdf-container">
+        <h2>PDF Reports</h2>
+        <div id="pdf-list"></div>
       </div>
     </article>
     `;
@@ -187,67 +187,27 @@ const ProfilePage = {
       console.log('Error getting products:', error.message);
     }
 
-    const orderList = document.querySelector('#order-list');
+    const pdfList = document.querySelector('#pdf-list');
 
-    // Get sold products and reviews
+    // Get sold products and create PDF links
     try {
       const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
-      if (orders) {
-        console.log('Order data:', orders);
-        orders.forEach((order) => {
-          order.items.forEach((item) => {
-            if (item.sellerId === UserInfo.getUserInfo().uid) {
-              const orderItem = document.createElement('div');
-              orderItem.innerHTML = `
-                <div class="order-card">
-                  <img src="${item.image}" class="order-card-img" alt="${item.name}">
-                  <div class="order-card-body">
-                    <h5 class="order-card-title">${item.name}</h5>
-                    <p class="order-card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                    <p class="order-card-rating">Rating: ${item.rating || 'Not rated'}</p>
-                    <p class="order-card-review">Review: ${item.comment || 'No review'}</p>
-                  </div>
-                </div>
-              `;
-              orderItem.setAttribute('class', 'order-item');
-              orderList.appendChild(orderItem);
-            }
-          });
-        });
-
-        if (orderList.childElementCount === 0) {
-          const orderText = document.createElement('h4');
-          orderText.innerText = 'No products sold yet.';
-          orderList.appendChild(orderText);
-        }
-      } else {
-        const orderText = document.createElement('h4');
-        orderText.innerText = 'No orders found.';
-        orderList.appendChild(orderText);
-      }
-    } catch (error) {
-      console.log('Error getting orders:', error.message);
-    }
-
-    const notificationList = document.querySelector('#notification-list');
-
-    // Get notifications for the seller
-    try {
-      const notifications = await OrderData.getNotifications(UserInfo.getUserInfo().uid);
-      if (notifications && notifications.length > 0) {
-        notifications.forEach((notification) => {
-          const notificationItem = document.createElement('div');
-          notificationItem.className = 'notification-item';
-          notificationItem.innerText = notification.message;
-          notificationList.appendChild(notificationItem);
+      if (orders.length > 0) {
+        orders.forEach(order => {
+          const pdfLink = document.createElement('a');
+          pdfLink.href = `./pdf-reports/${order.id}.pdf`; // Assuming PDF files are stored in a 'pdf-reports' directory
+          pdfLink.innerText = `Order ID: ${order.id}`;
+          pdfLink.target = '_blank'; // Open PDF in a new tab
+          pdfList.appendChild(pdfLink);
+          pdfList.appendChild(document.createElement('br')); // Add line break between links
         });
       } else {
-        const noNotificationText = document.createElement('p');
-        noNotificationText.innerText = 'No new notifications.';
-        notificationList.appendChild(noNotificationText);
+        const noOrdersText = document.createElement('h4');
+        noOrdersText.innerText = 'No sold products or PDF reports available.';
+        pdfList.appendChild(noOrdersText);
       }
     } catch (error) {
-      console.log('Error getting notifications:', error.message);
+      console.log('Error getting sold products and PDF links:', error.message);
     }
   },
 };
