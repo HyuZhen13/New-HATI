@@ -1,30 +1,30 @@
 import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
-import CartData from '../utils/cart-data'; // Import CartData untuk menyimpan ke keranjang
-import OrderData from '../utils/order-data';
+import CartData from '../utils/cart-data';
+import OrderData from '../utils/order-data'; // Import OrderData untuk mendapatkan umpan balik produk
 
 const DetailProductPage = {
   async render() {
     return `
-    <article class="product-detail-article">
-      <div id="product-detail-container"></div>
-      <div id="btn-product">
-        <button id="store-detail">
-          <img>
-          <small class="text-muted">Penjual 
-          <i class="fa-solid fa-circle-check fa-lg"></i></small>
-        </button>
-      </div>
-      <div id="more-product-container">
-        <h2>Other Items</h2>
-        <div id="more-product"></div>
-      </div>
-      <div id="feedback-container">
-        <h2>Ulasan Produk</h2>
-        <div id="feedback-list"></div>
-      </div>
-    </article>
+      <article class="product-detail-article">
+        <div id="product-detail-container"></div>
+        <div id="btn-product">
+          <button id="store-detail">
+            <img>
+            <small class="text-muted">Penjual 
+            <i class="fa-solid fa-circle-check fa-lg"></i></small>
+          </button>
+        </div>
+        <div id="more-product-container">
+          <h2>Other Items</h2>
+          <div id="more-product"></div>
+        </div>
+        <div id="feedback-container">
+          <h2>Ulasan Produk</h2>
+          <div id="feedback-list"></div>
+        </div>
+      </article>
     `;
   },
 
@@ -40,15 +40,15 @@ const DetailProductPage = {
     const feedbackList = document.querySelector('#feedback-list');
 
     productDetailContainer.innerHTML = `
-    <img src="${product.image}">
-    <div>
-      <h3>${product.name}</h3>
-      <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</p>
-      <p>Stok: ${product.stock}</p>
-      <button id="buy-now">Hubungi Untuk Memesan</button>
-      <button id="add-to-cart" ${product.stock <= 0 ? 'disabled' : ''}>Tambah ke Keranjang</button>
-      <p>${product.desc}</p>
-    </div>
+      <img src="${product.image}">
+      <div>
+        <h3>${product.name}</h3>
+        <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</p>
+        <p>Stok: ${product.stock}</p>
+        <button id="buy-now">Hubungi Untuk Memesan</button>
+        <button id="add-to-cart" ${product.stock <= 0 ? 'disabled' : ''}>Tambah ke Keranjang</button>
+        <p>${product.desc}</p>
+      </div>
     `;
 
     const buyNow = document.querySelector('#buy-now');
@@ -120,14 +120,13 @@ const DetailProductPage = {
     try {
       const feedbacks = await OrderData.getProductFeedback(product.id);
       if (feedbacks.length > 0) {
-        feedbacks.forEach((feedback) => {
+        feedbacks.forEach(feedback => {
           const feedbackItem = document.createElement('div');
+          feedbackItem.classList.add('feedback-item');
           feedbackItem.innerHTML = `
-            <div class="feedback-item">
-              <p><strong>${feedback.userId}</strong></p>
-              <p>Rating: ${feedback.rating} / 5</p>
-              <p>${feedback.comment}</p>
-            </div>
+            <p><strong>${feedback.userId}</strong></p>
+            <p>Rating: ${feedback.rating} / 5</p>
+            <p>${feedback.comment}</p>
           `;
           feedbackList.appendChild(feedbackItem);
         });
