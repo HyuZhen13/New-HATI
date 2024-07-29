@@ -143,6 +143,7 @@ const ProfilePage = {
     });
 
     const productUserList = document.querySelector('#product-list');
+    const orderList = document.querySelector('#order-list');
 
     // Get user's products
     try {
@@ -187,29 +188,42 @@ const ProfilePage = {
       console.log('Error getting products:', error.message);
     }
 
-    const pdfList = document.querySelector('#pdf-list');
-
-    // Get sold products and create PDF links
+    // Get sold products
     try {
       const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
       if (orders.length > 0) {
-        orders.forEach(order => {
-          const pdfLink = document.createElement('a');
-          pdfLink.href = `./pdf-reports/${order.id}.pdf`; // Assuming PDF files are stored in a 'pdf-reports' directory
-          pdfLink.innerText = `Order ID: ${order.id}`;
-          pdfLink.target = '_blank'; // Open PDF in a new tab
-          pdfList.appendChild(pdfLink);
-          pdfList.appendChild(document.createElement('br')); // Add line break between links
+        orders.forEach(async (order) => {
+          order.items.forEach(async (item) => {
+            // Get product data for each item
+            const product = await ProductData.getProductById(item.id);
+            if (product) {
+              const orderItem = document.createElement('div');
+              orderItem.innerHTML = `
+                <div class="order-card">
+                  <img src="${product.image}" class="order-card-img-top" alt="${product.name}">
+                  <div class="order-card-body">
+                    <h5 class="order-card-title">${product.name}</h5>
+                    <p class="order-card-text">Quantity: ${item.quantity}</p>
+                    <p class="order-card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price * item.quantity)}</p>
+                    <p class="order-card-text">Rating: ${item.rating || 'Not Rated'}</p>
+                    <p class="order-card-text">Comment: ${item.comment || 'No Comment'}</p>
+                    <p class="order-card-text">Payment Proof: <a href="${order.paymentProof}" target="_blank">View</a></p>
+                  </div>
+                </div>
+              `;
+              orderList.appendChild(orderItem);
+            }
+          });
         });
       } else {
         const noOrdersText = document.createElement('h4');
-        noOrdersText.innerText = 'No sold products or PDF reports available.';
-        pdfList.appendChild(noOrdersText);
+        noOrdersText.innerText = 'No sold products available.';
+        orderList.appendChild(noOrdersText);
       }
     } catch (error) {
-      console.log('Error getting sold products and PDF links:', error.message);
+      console.log('Error getting orders:', error.message);
     }
-  },
+  }
 };
 
 export default ProfilePage;
