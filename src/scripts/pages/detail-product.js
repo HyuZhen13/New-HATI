@@ -2,6 +2,7 @@ import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import CartData from '../utils/cart-data'; // Import CartData untuk menyimpan ke keranjang
+import OrderData from '../utils/order-data';
 
 const DetailProductPage = {
   async render() {
@@ -116,20 +117,26 @@ const DetailProductPage = {
     }
 
     // Menambahkan bagian untuk menampilkan komentar dan rating produk
-    if (product.feedback) {
-      product.feedback.forEach((feedback) => {
-        const feedbackItem = document.createElement('div');
-        feedbackItem.innerHTML = `
-          <div class="feedback-item">
-            <p><strong>${feedback.user}</strong></p>
-            <p>Rating: ${feedback.rating} / 5</p>
-            <p>${feedback.comment}</p>
-          </div>
-        `;
-        feedbackList.appendChild(feedbackItem);
-      });
-    } else {
-      feedbackList.innerHTML = '<p>Tidak ada ulasan untuk produk ini.</p>';
+    try {
+      const feedbacks = await OrderData.getProductFeedback(product.id);
+      if (feedbacks.length > 0) {
+        feedbacks.forEach((feedback) => {
+          const feedbackItem = document.createElement('div');
+          feedbackItem.innerHTML = `
+            <div class="feedback-item">
+              <p><strong>${feedback.userId}</strong></p>
+              <p>Rating: ${feedback.rating} / 5</p>
+              <p>${feedback.comment}</p>
+            </div>
+          `;
+          feedbackList.appendChild(feedbackItem);
+        });
+      } else {
+        feedbackList.innerHTML = '<p>Tidak ada ulasan untuk produk ini.</p>';
+      }
+    } catch (error) {
+      console.error('Error fetching product feedback:', error);
+      feedbackList.innerHTML = '<p>Gagal memuat ulasan produk.</p>';
     }
   },
 };
