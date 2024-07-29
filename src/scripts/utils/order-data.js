@@ -77,7 +77,7 @@ class OrderData {
   static async saveProductFeedback(orderId, productId, rating, comment) {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
-    const feedbackRef = ref(db, `product-feedback/${userId}/${productId}`);
+    const feedbackRef = ref(db, `product-feedback/${productId}/${userId}`);
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
 
@@ -115,7 +115,7 @@ class OrderData {
   // Mengambil umpan balik produk
   static async getProductFeedback(productId) {
     const db = getDatabase();
-    const feedbackRef = ref(db, `product-feedback`);
+    const feedbackRef = ref(db, `product-feedback/${productId}`);
 
     try {
       const feedbackSnapshot = await get(feedbackRef);
@@ -124,16 +124,10 @@ class OrderData {
       }
 
       const feedbackData = feedbackSnapshot.val();
-      const feedbacks = [];
-
-      for (const userId in feedbackData) {
-        if (feedbackData.hasOwnProperty(userId)) {
-          const userFeedback = feedbackData[userId][productId];
-          if (userFeedback) {
-            feedbacks.push({ userId, ...userFeedback });
-          }
-        }
-      }
+      const feedbacks = Object.entries(feedbackData).map(([userId, feedback]) => ({
+        userId,
+        ...feedback
+      }));
 
       console.log('Data umpan balik produk diambil dari Firebase:', feedbacks);
       return feedbacks;
