@@ -18,35 +18,30 @@ const ProfilePage = {
           <input placeholder="Phone Number" name="userPhone" id="userPhone">
           <input placeholder="Social Media (Link)" name="userSocmed" id="userSocmed">
           <textarea placeholder="Description" name="userDesc" id="userDesc"></textarea>
-          <input type="file" name="profileImage" id="profileImgInput"style="display:none;">
+          <input type="file" name="profileImage" id="profileImgInput" style="display:none;">
           <label id="verificationLabel">Submit Verification (PDF only)</label>
           <input type="file" name="storeVerification" id="storeVerification" accept="application/pdf">
-          <button type="submit" >Save Changes</button>
+          <button type="submit">Save Changes</button>
           <button id="logout-btn">Logout</button>
       </form>
     </div>
   </article>
 
   <article class="product-article">
-    
     <div class="product-container">
-    <a id="addProduct" href="#/add-product" >Add Product +</a>
-    <h2>My Product</h2>
-      <div id="product-list">
-        
-      </div>
+      <a id="addProduct" href="#/add-product">Add Product +</a>
+      <h2>My Product</h2>
+      <div id="product-list"></div>
     </div>
   </article>
 
   <article class="order-article">
     <div class="order-container">
       <h2>Sold Products</h2>
-      <div id="order-list">
-        
-      </div>
+      <div id="order-list"></div>
     </div>
   </article>
-        `;
+    `;
   },
   async afterRender() {
     const profileImg = document.querySelector('#profile-photo');
@@ -186,6 +181,7 @@ const ProfilePage = {
         console.log('Data pesanan:', orders);
         Object.values(orders).reverse().forEach((order) => {
           order.items.forEach((item) => {
+            console.log('Memeriksa item:', item);
             if (item.sellerId === UserInfo.getUserInfo().uid) {
               const orderItem = document.createElement('div');
               orderItem.innerHTML = `
