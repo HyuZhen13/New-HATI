@@ -118,9 +118,6 @@ const ProfilePage = {
         email: UserInfo.getUserInfo().email,
         uid: UserInfo.getUserInfo().uid,
       };
-      const verification = {
-        uid: UserInfo.getUserInfo().uid,
-      };
 
       const imgFile = document.querySelector('#profileImgInput').files[0];
 
@@ -133,13 +130,14 @@ const ProfilePage = {
         }
         if (verificationPdf.files[0]) {
           console.log('Submitting verification:', verificationPdf.files[0]);
-          await VerificationData.submitVerification(verification, verificationPdf.files[0]);
+          await VerificationData.submitVerification({ uid: UserInfo.getUserInfo().uid }, verificationPdf.files[0]);
         }
         alert('Successfully updated.');
       } catch (e) {
         console.log('Error saving changes:', e.message);
       } finally {
-        this.render();
+        // Re-render the page to reflect changes
+        location.reload();
       }
     });
 
@@ -204,8 +202,8 @@ const ProfilePage = {
                   <div class="order-card-body">
                     <h5 class="order-card-title">${item.name}</h5>
                     <p class="order-card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                    <p class="order-card-rating">Rating: ${item.rating}</p>
-                    <p class="order-card-review">Review: ${item.review}</p>
+                    <p class="order-card-rating">Rating: ${item.rating || 'Not rated'}</p>
+                    <p class="order-card-review">Review: ${item.comment || 'No review'}</p>
                   </div>
                 </div>
               `;
@@ -237,11 +235,12 @@ const ProfilePage = {
         console.log('Notification data:', orders);
         orders.forEach((order) => {
           order.items.forEach((item) => {
+          order.items.forEach((item) => {
             if (item.sellerId === UserInfo.getUserInfo().uid) {
               const notificationItem = document.createElement('div');
               notificationItem.innerHTML = `
                 <div class="notification-card">
-                  <p class="notification-text">Ada pesanan baru untuk ${item.name} dari ${order.buyerName}</p>
+                  <p class="notification-message">Ada pesanan baru untuk produk: ${item.name}</p>
                 </div>
               `;
               notificationItem.setAttribute('class', 'notification-item');
@@ -249,26 +248,20 @@ const ProfilePage = {
             }
           });
         });
-        if (notificationList.childElementCount === 0) {
-          const notificationText = document.createElement('h4');
-          notificationText.innerText = 'No notifications.';
-          notificationList.appendChild(notificationText);
+
+        // Show a pop-up notification for new orders
+        if (notificationList.childElementCount > 0) {
+          alert('Ada pesanan baru!');
         }
       } else {
         const notificationText = document.createElement('h4');
-        notificationText.innerText = 'No notifications found.';
+        notificationText.innerText = 'No new notifications.';
         notificationList.appendChild(notificationText);
       }
     } catch (error) {
       console.log('Error getting notifications:', error.message);
     }
-
-    // Show pop-up notification if there are new orders
-    const notificationCount = notificationList.childElementCount;
-    if (notificationCount > 0) {
-      alert('Ada pesanan baru');
-    }
-  },
+  }
 };
 
 export default ProfilePage;
