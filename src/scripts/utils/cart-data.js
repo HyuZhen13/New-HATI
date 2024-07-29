@@ -55,7 +55,7 @@ class CartData {
       const uploadTask = await uploadBytes(storageReference, file);
       const url = await getDownloadURL(uploadTask.ref);
       this.setPaymentProof(url);
-      return url; // Return the URL for further use if needed
+      return url; // Kembalikan URL untuk digunakan lebih lanjut jika diperlukan
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
@@ -75,6 +75,7 @@ class CartData {
     }
 
     try {
+      // Menyimpan pesanan
       await set(orderRef, {
         id: orderId,
         items: cartItems,
@@ -82,11 +83,15 @@ class CartData {
         timestamp: new Date().toISOString(),
       });
 
-      // Update stock for each product
+      // Memperbarui stok untuk setiap produk
       for (const order of cartItems) {
         const productRef = ref(db, `products/${order.id}`);
         const productSnapshot = await get(productRef);
         const productData = productSnapshot.val();
+
+        if (!productData) {
+          throw new Error(`Produk dengan ID ${order.id} tidak ditemukan.`);
+        }
 
         const newStock = productData.stock - order.quantity;
         if (newStock < 0) {
@@ -96,10 +101,11 @@ class CartData {
         await update(productRef, { stock: newStock });
       }
 
-      // Clear cart after moving to order
+      // Menghapus keranjang setelah pesanan dipindahkan
       this.clearCart();
     } catch (e) {
       console.log(e.message);
+      throw e; // Rethrow error to be handled by the calling function
     }
   }
 
@@ -112,7 +118,7 @@ class CartData {
         return [];
       }
       const ordersData = ordersSnapshot.val();
-      console.log('Orders data fetched from Firebase:', ordersData);
+      console.log('Data pesanan yang diambil dari Firebase:', ordersData);
       return Object.values(ordersData);
     } catch (error) {
       console.error('Error fetching orders:', error);
