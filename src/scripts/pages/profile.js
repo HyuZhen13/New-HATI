@@ -3,6 +3,7 @@ import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import UserInfo from '../utils/user-info';
 import VerificationData from '../utils/verification-data';
+import OrderData from '../utils/order-data';
 
 const ProfilePage = {
   async render() {
@@ -36,6 +37,15 @@ const ProfilePage = {
       </div>
     </div>
   </article>
+
+  <article class="order-article">
+    <div class="order-container">
+      <h2>Sold Products</h2>
+      <div id="order-list">
+        
+      </div>
+    </div>
+  </article>
         `;
   },
   async afterRender() {
@@ -49,6 +59,7 @@ const ProfilePage = {
     const verificationPdf = document.querySelector('#storeVerification');
     const verificationLabel = document.querySelector('#verificationLabel');
 
+    // Logout
     logout.addEventListener('click', (event) => {
       event.preventDefault();
       UserInfo.deleteUserInfo();
@@ -56,6 +67,7 @@ const ProfilePage = {
       location.reload();
     });
 
+    // Unggah gambar profil
     const profileImgInput = document.querySelector('#profileImgInput');
     profileImg.addEventListener('click', () => {
       profileImgInput.click();
@@ -69,14 +81,17 @@ const ProfilePage = {
       if (file) reader.readAsDataURL(file);
     }, false);
 
+    // Mendapatkan data pengguna
     try {
       const userData = await UserData.getUserData(UserInfo.getUserInfo().uid);
-      console.log(userData.isVerified);
+      console.log('Data pengguna:', userData);
+
       userName.setAttribute('value', userData.name);
       if (userData.phone) userPhone.setAttribute('value', userData.phone);
       if (userData.socmed) userSocmed.setAttribute('value', userData.socmed);
       if (userData.desc) userDesc.innerText = userData.desc;
       if (userData.photo) profileImg.setAttribute('src', userData.photo);
+
       if (userData.isVerified === 'pending') {
         verificationPdf.setAttribute('type', 'hidden');
         verificationLabel.innerText = 'Verification Pending';
@@ -86,10 +101,11 @@ const ProfilePage = {
         verificationLabel.innerText = 'You Are Verified!';
       }
     } catch (error) {
-      console.log(error.message);
+      console.log('Error mendapatkan data pengguna:', error.message);
     }
 
-    profileForm.addEventListener('submit', (event) => {
+    // Menyimpan perubahan profil
+    profileForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const userData = {
         name: '', phone: '', socmed: '', desc: '', seller: '', email: UserInfo.getUserInfo().email, uid: UserInfo.getUserInfo().uid,
@@ -105,22 +121,30 @@ const ProfilePage = {
       const imgFile = document.querySelector('#profileImgInput').files[0];
 
       try {
-        UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
-        if (imgFile) UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
-        if (verificationPdf) VerificationData.submitVerification(verification, verificationPdf.files[0]);
+        console.log('Menyimpan data pengguna:', userData);
+        await UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
+        if (imgFile) {
+          console.log('Mengunggah foto profil:', imgFile);
+          await UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
+        }
+        if (verificationPdf.files[0]) {
+          console.log('Mengirim verifikasi:', verificationPdf.files[0]);
+          await VerificationData.submitVerification(verification, verificationPdf.files[0]);
+        }
       } catch (e) {
-        console.log(e.message);
+        console.log('Error saat menyimpan perubahan:', e.message);
       } finally {
         this.render();
-        // eslint-disable-next-line no-alert
-        alert('Succesfully Updated.');
+        alert('Berhasil diperbarui.');
       }
     });
 
     const productUserList = document.querySelector('#product-list');
 
+    // Mendapatkan produk pengguna
     const product = await ProductData.getProduct();
     if (product) {
+      console.log('Data produk:', product);
       Object.values(product).reverse().forEach((item) => {
         const productItem = document.createElement('div');
         productItem.innerHTML = `
@@ -145,14 +169,55 @@ const ProfilePage = {
       });
       if (productUserList.childElementCount === 0) {
         const productText = document.createElement('h4');
-        productText.innerText = 'You have no product.';
+        productText.innerText = 'Anda belum memiliki produk.';
         productUserList.appendChild(productText);
       }
     } else {
       const productText = document.createElement('h4');
-      productText.innerText = 'Product does not exist.';
+      productText.innerText = 'Produk tidak ditemukan.';
       productUserList.appendChild(productText);
+    }
+
+    // Mendapatkan produk terjual dan ulasan
+    const orderList = document.querySelector('#order-list');
+    try {
+      const orders = await OrderData.getOrders();
+      if (orders) {
+        console.log('Data pesanan:', orders);
+        Object.values(orders).reverse().forEach((order) => {
+          order.items.forEach((item) => {
+            if (item.sellerId === UserInfo.getUserInfo().uid) {
+              const orderItem = document.createElement('div');
+              orderItem.innerHTML = `
+                <div class="order-card">
+                  <img src="${item.image}" class="order-card-img" alt="...">
+                  <div class="order-card-body">
+                    <h5 class="order-card-title">${item.name}</h5>
+                    <p class="order-card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+                    <p class="order-card-rating">Rating: ${item.rating || 'Belum diberi rating'}</p>
+                    <p class="order-card-comment">Komentar: ${item.comment || 'Belum ada komentar'}</p>
+                  </div>
+                </div>
+              `;
+              orderItem.setAttribute('class', 'order-item');
+              orderList.appendChild(orderItem);
+            }
+          });
+        });
+        if (orderList.childElementCount === 0) {
+          const orderText = document.createElement('h4');
+          orderText.innerText = 'Belum ada produk terjual.';
+          orderList.appendChild(orderText);
+        }
+      } else {
+        const orderText = document.createElement('h4');
+        orderText.innerText = 'Pesanan tidak ditemukan.';
+        orderList.appendChild(orderText);
+      }
+    } catch (error) {
+      console.log('Error mendapatkan pesanan:', error.message);
     }
   },
 };
+
 export default ProfilePage;
