@@ -100,6 +100,7 @@ class OrderData {
         item.comment = comment;
         orderData.items[itemIndex] = item;
 
+        // Update order data and completed orders data
         await update(orderRef, { items: orderData.items });
         await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
       } else {
@@ -107,6 +108,37 @@ class OrderData {
       }
     } catch (error) {
       console.error('Error saving feedback:', error);
+      throw error;
+    }
+  }
+
+  // Mengambil umpan balik produk
+  static async getProductFeedback(productId) {
+    const db = getDatabase();
+    const feedbackRef = ref(db, `product-feedback`);
+
+    try {
+      const feedbackSnapshot = await get(feedbackRef);
+      if (!feedbackSnapshot.exists()) {
+        return [];
+      }
+
+      const feedbackData = feedbackSnapshot.val();
+      const feedbacks = [];
+
+      for (const userId in feedbackData) {
+        if (feedbackData.hasOwnProperty(userId)) {
+          const userFeedback = feedbackData[userId][productId];
+          if (userFeedback) {
+            feedbacks.push({ userId, ...userFeedback });
+          }
+        }
+      }
+
+      console.log('Data umpan balik produk diambil dari Firebase:', feedbacks);
+      return feedbacks;
+    } catch (error) {
+      console.error('Error fetching product feedback:', error);
       throw error;
     }
   }
