@@ -68,31 +68,32 @@ const ProfilePage = {
       profileImgInput.click();
     });
     profileImgInput.addEventListener('change', async () => {
-      const file = await profileImgInput.files[0];
-      const reader = new FileReader();
-      reader.onload = async () => {
-        profileImg.src = reader.result;
-      };
-      if (file) reader.readAsDataURL(file);
-    }, false);
+      const file = profileImgInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          profileImg.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
     // Mendapatkan data pengguna
     try {
       const userData = await UserData.getUserData(UserInfo.getUserInfo().uid);
       console.log('Data pengguna:', userData);
 
-      userName.setAttribute('value', userData.name);
-      if (userData.phone) userPhone.setAttribute('value', userData.phone);
-      if (userData.socmed) userSocmed.setAttribute('value', userData.socmed);
-      if (userData.desc) userDesc.innerText = userData.desc;
-      if (userData.photo) profileImg.setAttribute('src', userData.photo);
+      userName.value = userData.name || '';
+      userPhone.value = userData.phone || '';
+      userSocmed.value = userData.socmed || '';
+      userDesc.value = userData.desc || '';
+      profileImg.src = userData.photo || './images/profile.png';
 
       if (userData.isVerified === 'pending') {
-        verificationPdf.setAttribute('type', 'hidden');
+        verificationPdf.style.display = 'none';
         verificationLabel.innerText = 'Verification Pending';
-      }
-      if (userData.isVerified === 'verified') {
-        verificationPdf.setAttribute('type', 'hidden');
+      } else if (userData.isVerified === 'verified') {
+        verificationPdf.style.display = 'none';
         verificationLabel.innerText = 'You Are Verified!';
       }
     } catch (error) {
@@ -103,16 +104,17 @@ const ProfilePage = {
     profileForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const userData = {
-        name: '', phone: '', socmed: '', desc: '', seller: '', email: UserInfo.getUserInfo().email, uid: UserInfo.getUserInfo().uid,
+        name: userName.value,
+        phone: userPhone.value,
+        socmed: userSocmed.value,
+        desc: userDesc.value,
+        email: UserInfo.getUserInfo().email,
+        uid: UserInfo.getUserInfo().uid,
       };
       const verification = {
         uid: UserInfo.getUserInfo().uid,
       };
 
-      userData.name = document.forms.profileForm.userName.value;
-      userData.phone = document.forms.profileForm.userPhone.value;
-      userData.socmed = document.forms.profileForm.userSocmed.value;
-      userData.desc = document.forms.profileForm.userDesc.value;
       const imgFile = document.querySelector('#profileImgInput').files[0];
 
       try {
@@ -126,67 +128,72 @@ const ProfilePage = {
           console.log('Mengirim verifikasi:', verificationPdf.files[0]);
           await VerificationData.submitVerification(verification, verificationPdf.files[0]);
         }
+        alert('Berhasil diperbarui.');
       } catch (e) {
         console.log('Error saat menyimpan perubahan:', e.message);
       } finally {
         this.render();
-        alert('Berhasil diperbarui.');
       }
     });
 
     const productUserList = document.querySelector('#product-list');
 
     // Mendapatkan produk pengguna
-    const product = await ProductData.getProduct();
-    if (product) {
-      console.log('Data produk:', product);
-      Object.values(product).reverse().forEach((item) => {
-        const productItem = document.createElement('div');
-        productItem.innerHTML = `
-            <div class="card">
-              <img src="${item.image}" class="card-img-top" alt="...">
-              <div class="card-body">
-              <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-              <h5 class="card-title">${item.name}</h5>
+    try {
+      const product = await ProductData.getProduct();
+      if (product) {
+        console.log('Data produk:', product);
+        Object.values(product).reverse().forEach((item) => {
+          if (item.uid === UserInfo.getUserInfo().uid) {
+            const productItem = document.createElement('div');
+            productItem.innerHTML = `
+              <div class="card">
+                <img src="${item.image}" class="card-img-top" alt="${item.name}">
+                <div class="card-body">
+                  <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+                  <h5 class="card-title">${item.name}</h5>
+                </div>
+                <div class="card-footer">
+                  <small class="text-muted">${item.seller} <i class="fa-solid fa-circle-check fa-lg"></i></small>
+                </div>
               </div>
-              <div class="card-footer">
-              <small class="text-muted">${item.seller} <i class="fa-solid fa-circle-check fa-lg"></i></small>
-            </div>
-          `;
-        productItem.setAttribute('class', 'product-item');
-        productItem.addEventListener('click', (event) => {
-          event.preventDefault();
-          location.href = `#/edit-product/${item.id}`;
+            `;
+            productItem.setAttribute('class', 'product-item');
+            productItem.addEventListener('click', (event) => {
+              event.preventDefault();
+              location.href = `#/edit-product/${item.id}`;
+            });
+            productUserList.appendChild(productItem);
+          }
         });
-        if (item.uid === UserInfo.getUserInfo().uid) {
-          productUserList.appendChild(productItem);
+        if (productUserList.childElementCount === 0) {
+          const productText = document.createElement('h4');
+          productText.innerText = 'Anda belum memiliki produk.';
+          productUserList.appendChild(productText);
         }
-      });
-      if (productUserList.childElementCount === 0) {
+      } else {
         const productText = document.createElement('h4');
-        productText.innerText = 'Anda belum memiliki produk.';
+        productText.innerText = 'Produk tidak ditemukan.';
         productUserList.appendChild(productText);
       }
-    } else {
-      const productText = document.createElement('h4');
-      productText.innerText = 'Produk tidak ditemukan.';
-      productUserList.appendChild(productText);
+    } catch (error) {
+      console.log('Error mendapatkan produk:', error.message);
     }
 
-    // Mendapatkan produk terjual dan ulasan
     const orderList = document.querySelector('#order-list');
+
+    // Mendapatkan produk terjual dan ulasan
     try {
-      const orders = await OrderData.getOrders();
+      const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
       if (orders) {
         console.log('Data pesanan:', orders);
         Object.values(orders).reverse().forEach((order) => {
           order.items.forEach((item) => {
-            console.log('Memeriksa item:', item);
             if (item.sellerId === UserInfo.getUserInfo().uid) {
               const orderItem = document.createElement('div');
               orderItem.innerHTML = `
                 <div class="order-card">
-                  <img src="${item.image}" class="order-card-img" alt="...">
+                  <img src="${item.image}" class="order-card-img" alt="${item.name}">
                   <div class="order-card-body">
                     <h5 class="order-card-title">${item.name}</h5>
                     <p class="order-card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
