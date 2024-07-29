@@ -3,6 +3,7 @@ import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import CartData from '../utils/cart-data'; // Import CartData untuk menyimpan ke keranjang
+import OrderData from '../utils/order-data'; // Import OrderData untuk mengambil data pesanan
 
 const DetailProductPage = {
   async render() {
@@ -20,6 +21,10 @@ const DetailProductPage = {
         <h2>Other Items</h2>
         <div id="more-product"></div>
       </div>
+      <div id="product-feedback-container">
+        <h2>Feedback Produk</h2>
+        <div id="product-feedback"></div>
+      </div>
     </article>
     `;
   },
@@ -30,10 +35,12 @@ const DetailProductPage = {
     const product = await ProductData.getProductById(url.id);
     const productAll = await ProductData.getProduct();
     const store = await UserData.getUserData(product.uid);
+    const feedbackData = await OrderData.getProductFeedback(url.id); // Mengambil data komentar dan rating
 
     const productDetailContainer = document.querySelector('#product-detail-container');
     const storeDetail = document.querySelector('#store-detail');
     const moreProduct = document.querySelector('#more-product');
+    const productFeedbackContainer = document.querySelector('#product-feedback'); // Container untuk feedback
 
     productDetailContainer.innerHTML = `
     <img src="${product.image}">
@@ -106,6 +113,18 @@ const DetailProductPage = {
       productText.innerText = 'This store just have one product.';
       moreProduct.appendChild(productText);
     }
+
+    // Menambahkan feedback ke productFeedbackContainer
+    feedbackData.forEach(feedback => {
+      const feedbackItem = document.createElement('div');
+      feedbackItem.innerHTML = `
+        <div class="feedback-item">
+          <p>Rating: ${feedback.rating}</p>
+          <p>Komentar: ${feedback.comment}</p>
+        </div>
+      `;
+      productFeedbackContainer.appendChild(feedbackItem);
+    });
   },
 };
 
