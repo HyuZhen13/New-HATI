@@ -1,7 +1,9 @@
 /* eslint-disable consistent-return */
 /* eslint-disable object-shorthand */
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import UserInfo from './user-info';
+import { generateOrderPDF } from './pdf-utils'; // Import utilitas untuk membuat PDF
 
 class OrderData {
   // Mengambil pesanan terkini pengguna
@@ -38,6 +40,7 @@ class OrderData {
     const userId = UserInfo.getUserInfo().uid;
     const ordersRef = ref(db, `orders/${userId}`);
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
+    const storage = getStorage();
     
     try {
       const ordersSnapshot = await get(ordersRef);
@@ -63,7 +66,17 @@ class OrderData {
         // Hapus pesanan dari orders
         await remove(orderRef);
 
-        return orderData;
+        // Buat dan unggah PDF pesanan
+        const pdfBlob = await generateOrderPDF(orderData);
+        const pdfRef = storageRef(storage, `order-pdfs/${userId}/${latestOrderId}.pdf`);
+        await uploadBytes(pdfRef, pdfBlob);
+
+        const pdfUrl = await getDownloadURL(pdfRef);
+
+        // Simpan URL PDF di database
+        await update(ref(db, `completed-orders/${userId}/${latestOrderId}`), { pdfUrl });
+
+        return { orderData, pdfUrl };
       } else {
         throw new Error('Tidak ada pesanan yang dapat diselesaikan.');
       }
