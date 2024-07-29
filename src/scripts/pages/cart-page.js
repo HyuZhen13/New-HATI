@@ -13,6 +13,7 @@ const CartPage = {
       </div>
     `;
   },
+
   async afterRender() {
     const cartItems = await CartData.getCartItems();
     const cartItemsContainer = document.querySelector('#cart-items');
@@ -29,7 +30,7 @@ const CartPage = {
         <h4>${item.name}</h4>
         <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
         <input type="number" value="${item.quantity}" min="1" max="${item.stock}" data-id="${item.id}" class="quantity-input" />
-        <button data-id="${item.id}" class="remove-button">Remove</button>
+        <button data-id="${item.id}" class="remove-button">Hapus</button>
       `;
       cartItemsContainer.appendChild(cartItem);
       totalPrice += item.price * item.quantity;
@@ -41,24 +42,38 @@ const CartPage = {
           alert('Jumlah melebihi stok yang tersedia.');
           e.target.value = item.quantity;
         } else {
-          await CartData.updateCartItem(item.id, quantity);
-          location.reload();
+          try {
+            await CartData.updateCartItem(item.id, quantity);
+            location.reload();
+          } catch (error) {
+            console.error('Gagal memperbarui item keranjang:', error);
+          }
         }
       });
 
       const removeButton = cartItem.querySelector('.remove-button');
       removeButton.addEventListener('click', async () => {
-        await CartData.removeCartItem(item.id);
-        location.reload();
+        try {
+          await CartData.removeCartItem(item.id);
+          location.reload();
+        } catch (error) {
+          console.error('Gagal menghapus item keranjang:', error);
+        }
       });
     });
 
     totalPriceContainer.innerHTML = `Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}`;
+
     paymentProofInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        const url = await CartData.uploadPaymentProof(file);
-        checkoutButton.disabled = false;
+        try {
+          const url = await CartData.uploadPaymentProof(file);
+          CartData.setPaymentProof(url);
+          checkoutButton.disabled = false;
+        } catch (error) {
+          console.error('Gagal mengunggah bukti pembayaran:', error);
+        }
       }
     });
 
