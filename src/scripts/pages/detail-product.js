@@ -1,7 +1,6 @@
 import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
-import CartData from '../utils/cart-data';
 import OrderData from '../utils/order-data';
 
 const DetailProductPage = {
@@ -116,7 +115,7 @@ const DetailProductPage = {
       moreProduct.appendChild(productText);
     }
 
-    // Menambahkan bagian untuk menampilkan komentar dan rating produk
+    // Menambahkan bagian untuk menampilkan semua komentar dan rating produk
     try {
       const orders = await OrderData.getOrdersByProductId(product.id); // Update method to get all orders by product ID
       if (orders.length > 0) {
