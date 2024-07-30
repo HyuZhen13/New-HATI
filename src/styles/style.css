@@ -361,7 +361,7 @@ html {
     text-align: left;
   }
 
-  .order-item img {
+  mg {
     max-height: 300px; /* Adjusted size for smaller screens */
     width: 100%; /* Ensure full width usage */
   }
@@ -373,7 +373,7 @@ html {
     height: 60px;
   }
 
-  .order-item img {
+  img {
     max-height: 200px; /* Further adjusted for even smaller screens */
     width: 100%; /* Ensure full width usage */
   }
