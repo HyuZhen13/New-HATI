@@ -29,6 +29,8 @@ const CartPage = {
       cartItem.innerHTML = `
         <img src="${item.image}" alt="${item.name}">
         <h4>${item.name}</h4>
+        <p>Nama Toko: ${item.storeName}</p>
+        <p>WhatsApp: ${item.whatsapp}</p>
         <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
         <input type="number" value="${item.quantity}" min="1" max="${item.stock}" data-id="${item.id}" class="quantity-input" />
         <button data-id="${item.id}" class="remove-button">Hapus</button>
@@ -43,45 +45,44 @@ const CartPage = {
           alert('Jumlah melebihi stok yang tersedia.');
           e.target.value = item.quantity;
         } else {
-          await CartData.updateCartItem(userId, item.id, quantity);
+          await CartData.updateCartItem(item.id, quantity);
           location.reload();
         }
       });
 
       const removeButton = cartItem.querySelector('.remove-button');
       removeButton.addEventListener('click', async () => {
-        await CartData.removeCartItem(userId, item.id);
+        await CartData.removeCartItem(item.id);
         location.reload();
       });
     });
 
     totalPriceContainer.innerHTML = `Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}`;
+
     paymentProofInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
         try {
-          await CartData.uploadPaymentProof(file);
+          const url = await CartData.uploadPaymentProof(file);
+          console.log('Bukti pembayaran berhasil diunggah:', url);
           checkoutButton.disabled = false;
         } catch (error) {
-          alert('Gagal mengunggah bukti pembayaran: ' + error.message);
+          console.error('Error uploading payment proof:', error);
         }
       }
     });
 
     checkoutButton.addEventListener('click', async () => {
-      const paymentProof = await CartData.getPaymentProof(userId);
-      if (paymentProof) {
-        try {
-          await CartData.moveToOrderPage(userId);
-          location.href = '#/order';
-        } catch (error) {
-          alert('Gagal melakukan checkout: ' + error.message);
-        }
-      } else {
-        alert('Silakan unggah bukti pembayaran terlebih dahulu.');
+      try {
+        await CartData.moveToOrderPage();
+        alert('Checkout berhasil. Pesanan Anda sedang diproses.');
+        location.reload();
+      } catch (error) {
+        console.error('Error during checkout:', error);
+        alert(`Checkout gagal: ${error.message}`);
       }
     });
-  },
+  }
 };
 
 export default CartPage;
