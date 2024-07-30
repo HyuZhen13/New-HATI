@@ -1,36 +1,21 @@
-import jsPDF from 'jspdf';
+import jsPDF from 'jspdf'; // Import jsPDF library
 import UserInfo from '../utils/user-info';
 import OrderData from '../utils/order-data';
-
-// Fungsi untuk mengirim PDF ke WhatsApp menggunakan URL
-async function sendPDFToWhatsApp(pdfUrl, sellerNumber) {
-  // Implementasikan logika untuk mengirim PDF ke WhatsApp menggunakan URL
-  // Misalnya, jika Anda menggunakan API layanan pihak ketiga, tambahkan logika ini di sini
-  console.log(`Mengirim PDF ke WhatsApp: ${pdfUrl}, ke nomor: ${sellerNumber}`);
-  // Sebagai contoh, jika menggunakan API pihak ketiga:
-  // await fetch(`https://api.whatsapp.com/send?phone=${sellerNumber}&text=${encodeURIComponent(pdfUrl)}`);
-}
+import ProductData from '../utils/product-data';
 
 const OrderPage = {
-  // Menghasilkan HTML dasar untuk halaman pesanan
   async render() {
     return `
       <div class="order-page">
-        <h1>Detail Pesanan</h1>
-        <div id="order-details" class="order-details"></div>
-        <h1>Pesanan Selesai</h1>
-        <div id="completed-orders" class="completed-orders"></div>
-      </div>
+	@@ -14,21 +15,18 @@ const OrderPage = {
     `;
   },
 
-  // Memanggil fungsi render untuk pesanan saat ini dan pesanan yang selesai setelah halaman dimuat
   async afterRender() {
     await this.renderCurrentOrder();
     await this.renderCompletedOrders();
   },
 
-  // Merender pesanan saat ini
   async renderCurrentOrder() {
     const orderDetailsContainer = document.querySelector('#order-details');
     const userId = UserInfo.getUserInfo().uid;
@@ -43,7 +28,6 @@ const OrderPage = {
           <img src="${order.paymentProof}" alt="Bukti Pembayaran">
           <div id="order-items"></div>
         `;
-
         const orderItemsContainer = document.querySelector('#order-items');
         if (Array.isArray(order.items)) {
           order.items.forEach(item => {
@@ -59,27 +43,38 @@ const OrderPage = {
               <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
             `;
             orderItemsContainer.appendChild(orderItem);
-
             const saveFeedbackButton = orderItem.querySelector('.save-feedback-button');
             saveFeedbackButton.addEventListener('click', async () => {
               const rating = orderItem.querySelector('.rating-input').value;
               const comment = orderItem.querySelector('.comment-input').value;
-
               if (rating && comment) {
                 try {
                   await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
 
-                  // Buat file PDF dan simpan ke Firebase
-                  const pdfUrl = await this.createAndUploadPDF(order);
+                  // Create PDF
+                  const pdf = new jsPDF();
+                  pdf.text('Detail Pesanan', 10, 10);
+                  pdf.text(`Order ID: ${order.id}`, 10, 20);
+                  pdf.text(`Date: ${new Date(order.timestamp).toLocaleDateString()}`, 10, 30);
+                  order.items.forEach((item, index) => {
+                    pdf.text(`Item ${index + 1}:`, 10, 40 + (index * 10));
+                    pdf.text(`Name: ${item.name}`, 10, 50 + (index * 10));
+                    pdf.text(`Price: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}`, 10, 60 + (index * 10));
+                    pdf.text(`Quantity: ${item.quantity}`, 10, 70 + (index * 10));
+                    pdf.text(`Rating: ${rating}`, 10, 80 + (index * 10));
+                    pdf.text(`Comment: ${comment}`, 10, 90 + (index * 10));
+                  });
+                  const pdfOutput = pdf.output('blob');
 
-                  // Pindahkan pesanan ke completed-orders
+                  // Get seller's WhatsApp number from ProductData
+                  const product = await ProductData.getProductById(item.id);
+                  const sellerPhone = product.sellerPhone;
+
+                  // Send PDF to seller's WhatsApp (replace with actual API call or method)
+                  await this.sendPdfToWhatsApp(pdfOutput, sellerPhone);
+
+                  // Move order to completed and reload
                   await OrderData.completeOrder();
-
-                  // Kirim file PDF ke WhatsApp seller
-                  const sellerNumber = await OrderData.getSellerNumber(item.id);
-                  await sendPDFToWhatsApp(pdfUrl, sellerNumber);
-
-                  console.log('Rating dan komentar berhasil disimpan dan PDF dikirim.');
                   location.reload();
                 } catch (error) {
                   console.error('Gagal menyimpan rating dan komentar:', error);
@@ -102,28 +97,9 @@ const OrderPage = {
     }
   },
 
-  // Membuat file PDF dan menguploadnya ke Firebase Storage
-  async createAndUploadPDF(order) {
-    const doc = new jsPDF();
-    doc.text('Detail Pesanan', 10, 10);
-    doc.text(`Order ID: ${order.id}`, 10, 20);
-
-    order.items.forEach((item, index) => {
-      doc.text(`${index + 1}. ${item.name}`, 10, 30 + index * 10);
-      doc.text(`Jumlah: ${item.quantity}`, 10, 40 + index * 10);
-      doc.text(`Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}`, 10, 50 + index * 10);
-    });
-
-    const pdfBlob = doc.output('blob');
-    const pdfUrl = await OrderData.uploadPDF(pdfBlob);
-    return pdfUrl;
-  },
-
-  // Merender pesanan yang telah selesai
   async renderCompletedOrders() {
     const completedOrdersContainer = document.querySelector('#completed-orders');
     const userId = UserInfo.getUserInfo().uid;
-
     try {
       const orders = await OrderData.getCompletedOrders(userId);
       if (orders.length > 0) {
@@ -148,7 +124,6 @@ const OrderPage = {
             <button data-id="${order.id}" class="delete-order-button">Hapus Pesanan</button>
           `;
           completedOrdersContainer.appendChild(orderElement);
-
           const deleteOrderButton = orderElement.querySelector('.delete-order-button');
           deleteOrderButton.addEventListener('click', async () => {
             try {
@@ -168,6 +143,13 @@ const OrderPage = {
       console.error('Error fetching completed orders:', error);
       completedOrdersContainer.innerHTML = '<p>Gagal memuat pesanan selesai.</p>';
     }
+  },
+
+  async sendPdfToWhatsApp(pdfBlob, phoneNumber) {
+    // Replace with actual API call or method to send PDF via WhatsApp
+    // This is a placeholder implementation
+    console.log('Sending PDF to WhatsApp:', phoneNumber);
+    // Use WhatsApp API or another method to send the PDF
   }
 };
 
