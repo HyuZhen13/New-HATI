@@ -101,11 +101,14 @@ class OrderData {
     
     try {
       const orderSnapshot = await get(orderRef);
+      console.log('Order snapshot:', orderSnapshot.val());
       if (!orderSnapshot.exists()) {
         throw new Error('Pesanan tidak ditemukan.');
       }
       const orderData = orderSnapshot.val();
+      console.log('Order data:', orderData);
       const product = orderData.items.find(item => item.id === productId);
+      console.log('Product found:', product);
       if (product) {
         product.rating = rating;
         product.comment = comment;
