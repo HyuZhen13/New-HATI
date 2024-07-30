@@ -7,6 +7,72 @@ import OrderData from '../utils/order-data';
 const ProfilePage = {
   async render() {
     return `
+    <style>
+      .profile-article, .product-article, .order-article {
+        margin-bottom: 20px;
+      }
+      .profile-container, .product-container, .order-container {
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: #fff;
+      }
+      .profile-container img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        cursor: pointer;
+        margin-bottom: 20px;
+      }
+      .profile-container input, .profile-container textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
+      .profile-container button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background: #007bff;
+        color: #fff;
+        cursor: pointer;
+      }
+      .product-container, .order-container {
+        margin-top: 20px;
+      }
+      .product-item, .order-item {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .product-item img, .order-item img {
+        width: 100%;
+        height: auto;
+      }
+      .product-item .card-body, .order-item .order-body {
+        padding: 15px;
+        background: #f9f9f9;
+      }
+      .product-item .card-footer, .order-item .order-footer {
+        padding: 10px 15px;
+        background: #007bff;
+        color: #fff;
+      }
+      .product-item .card-footer small, .order-item .order-footer small {
+        font-size: 0.9em;
+      }
+      .order-item .order-body h5, .order-item .order-body p {
+        margin: 5px 0;
+      }
+    </style>
+    
     <article class="profile-article">
       <div class="profile-container">
         <form name="profileForm" id="profile-form" method="POST" enctype="multipart/form-data">
@@ -176,54 +242,45 @@ const ProfilePage = {
         }
       } else {
         const productText = document.createElement('h4');
-        productText.innerText = 'Products not found.';
+        productText.innerText = 'You do not have any products.';
         productUserList.appendChild(productText);
       }
-
-      // Get sold products orders
-      if (userProducts.length > 0) {
-        const allOrders = await OrderData.getOrdersByProducts(userProducts);
-        if (allOrders.length > 0) {
-          allOrders.forEach(order => {
-            order.items.forEach(item => {
-              if (userProducts.find(product => product.id === item.id)) {
-                const orderItem = document.createElement('div');
-                orderItem.innerHTML = `
-                  <div class="order-item">
-                    <h5>Order ID: ${order.id}</h5>
-                    <p>Product: ${item.name}</p>
-                    <p>Quantity: ${item.quantity}</p>
-                    <p>Price: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                    <p>Payment Proof: <a href="${order.paymentProof}" target="_blank">View</a></p>
-                  </div>
-                `;
-                orderList.appendChild(orderItem);
-              }
-            });
-          });
-        } else {
-          const noOrdersText = document.createElement('h4');
-          noOrdersText.innerText = 'No sold products available.';
-          orderList.appendChild(noOrdersText);
-        }
-      }
     } catch (error) {
-      console.log('Error getting products or orders:', error.message);
+      console.log('Error getting product data:', error.message);
     }
 
-    // Show pop-up notification for new orders
-    const newOrderNotification = async () => {
-      try {
-        const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
-        if (orders.length > 0) {
-          alert('New order available');
-        }
-      } catch (error) {
-        console.log('Error getting new orders:', error.message);
+    // Get sold products
+    try {
+      const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
+      if (orders && orders.length > 0) {
+        console.log('Orders data:', orders);
+        orders.forEach((order) => {
+          order.items.forEach((item) => {
+            const orderItem = document.createElement('div');
+            orderItem.innerHTML = `
+              <div class="order-item">
+                <img src="${item.image}" class="order-img-top" alt="${item.name}">
+                <div class="order-body">
+                  <h5 class="order-title">${item.name}</h5>
+                  <p class="order-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+                  <p class="order-quantity">Quantity: ${item.quantity}</p>
+                </div>
+                <div class="order-footer">
+                  <small class="text-muted">Buyer: ${order.buyerName}</small>
+                </div>
+              </div>
+            `;
+            orderList.appendChild(orderItem);
+          });
+        });
+      } else {
+        const orderText = document.createElement('h4');
+        orderText.innerText = 'No products sold.';
+        orderList.appendChild(orderText);
       }
-    };
-
-    await newOrderNotification();
+    } catch (error) {
+      console.log('Error getting orders:', error.message);
+    }
   },
 };
 
