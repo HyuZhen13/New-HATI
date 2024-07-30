@@ -2,7 +2,6 @@ import UserInfo from '../utils/user-info';
 import OrderData from '../utils/order-data';
 
 const OrderPage = {
-  // Menghasilkan HTML dasar untuk halaman pesanan
   async render() {
     return `
       <div class="order-page">
@@ -14,13 +13,11 @@ const OrderPage = {
     `;
   },
 
-  // Memanggil fungsi render untuk pesanan saat ini dan pesanan yang selesai setelah halaman dimuat
   async afterRender() {
     await this.renderCurrentOrder();
     await this.renderCompletedOrders();
   },
 
-  // Merender pesanan saat ini
   async renderCurrentOrder() {
     const orderDetailsContainer = document.querySelector('#order-details');
     const userId = UserInfo.getUserInfo().uid;
@@ -78,7 +75,6 @@ const OrderPage = {
     }
   },
 
-  // Merender pesanan yang telah selesai
   async renderCompletedOrders() {
     const completedOrdersContainer = document.querySelector('#completed-orders');
     const userId = UserInfo.getUserInfo().uid;
