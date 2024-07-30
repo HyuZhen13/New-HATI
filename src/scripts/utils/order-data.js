@@ -1,7 +1,7 @@
+/* eslint-disable consistent-return */
+/* eslint-disable object-shorthand */
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import UserInfo from './user-info';
-
 class OrderData {
   // Mengambil pesanan terkini pengguna
   static async getCurrentOrder() {
@@ -28,100 +28,109 @@ class OrderData {
       throw error;
     }
   }
-
-  // Mengambil semua pesanan yang telah selesai
-  static async getCompletedOrders(userId) {
-    const db = getDatabase();
-    const ordersRef = ref(db, `completed-orders/${userId}`);
-    try {
-      const ordersSnapshot = await get(ordersRef);
-      if (!ordersSnapshot.exists()) {
-        return [];
-      }
-      const ordersData = ordersSnapshot.val();
-      console.log('Data pesanan selesai yang diambil dari Firebase:', ordersData);
-      return Object.values(ordersData);
-    } catch (error) {
-      console.error('Error fetching completed orders:', error);
-      throw error;
-    }
-  }
-
-  // Menyimpan feedback produk
-  static async saveProductFeedback(orderId, productId, rating, comment) {
-    const db = getDatabase();
-    const feedbackRef = ref(db, `order-feedback/${orderId}/${productId}`);
-    try {
-      await set(feedbackRef, {
-        rating,
-        comment
-      });
-    } catch (error) {
-      console.error('Error saving product feedback:', error);
-      throw error;
-    }
-  }
-
-  // Menyelesaikan pesanan
+  // Menyelesaikan pesanan terkini pengguna
   static async completeOrder() {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
-    const currentOrderRef = ref(db, `orders/${userId}`);
+    const ordersRef = ref(db, `orders/${userId}`);
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
+    
     try {
-      const currentOrderSnapshot = await get(currentOrderRef);
-      if (!currentOrderSnapshot.exists()) {
-        throw new Error('Tidak ada pesanan yang sedang diproses.');
+      const ordersSnapshot = await get(ordersRef);
+      if (!ordersSnapshot.exists()) {
+        throw new Error('Tidak ada pesanan yang ditemukan.');
       }
-      const currentOrderData = currentOrderSnapshot.val();
-      const orderIds = Object.keys(currentOrderData);
-      
-      // Menyimpan pesanan yang selesai
-      for (const orderId of orderIds) {
-        const orderRef = ref(db, `orders/${userId}/${orderId}`);
-        const orderData = currentOrderData[orderId];
-        await set(ref(db, `completed-orders/${userId}/${orderId}`), orderData);
+      const ordersData = ordersSnapshot.val();
+      const orderIds = Object.keys(ordersData);
+      if (orderIds.length > 0) {
+        const latestOrderId = orderIds[orderIds.length - 1];
+        const orderData = ordersData[latestOrderId];
+        const orderRef = ref(db, `orders/${userId}/${latestOrderId}`);
+        
+        // Perbarui status pesanan menjadi selesai
+        await update(orderRef, { status: 'completed' });
+        // Pindahkan pesanan ke completed-orders
+        await set(ref(db, `completed-orders/${userId}/${latestOrderId}`), orderData);
+        // Hapus pesanan dari orders
         await remove(orderRef);
+        return orderData;
+      } else {
+        throw new Error('Tidak ada pesanan yang dapat diselesaikan.');
       }
     } catch (error) {
       console.error('Error completing order:', error);
       throw error;
     }
   }
-
-  // Mengupload PDF ke Firebase Storage
-  static async uploadPDF(pdfBlob) {
-    const userId = UserInfo.getUserInfo().uid;
-    const storage = getStorage();
-    const pdfRef = storageRef(storage, `order-pdfs/${userId}/${Date.now()}.pdf`);
-    try {
-      const uploadTask = await uploadBytes(pdfRef, pdfBlob);
-      const pdfUrl = await getDownloadURL(uploadTask.ref);
-      console.log('URL PDF:', pdfUrl);
-      return pdfUrl;
-    } catch (error) {
-      console.error('Error uploading PDF:', error);
-      throw error;
-    }
-  }
-
-  // Mendapatkan nomor WhatsApp seller
-  static async getSellerNumber(productId) {
+  // Menyimpan umpan balik produk
+  static async saveProductFeedback(orderId, productId, rating, comment) {
     const db = getDatabase();
-    const productRef = ref(db, `products/${productId}`);
+    const userId = UserInfo.getUserInfo().uid;
+    const feedbackRef = ref(db, `product-feedback/${productId}/${userId}`);
+    const orderRef = ref(db, `orders/${userId}/${orderId}`);
+    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
     try {
-      const productSnapshot = await get(productRef);
-      const productData = productSnapshot.val();
-      if (productData) {
-        return productData.sellerNumber; // Gantilah dengan field yang sesuai untuk nomor WhatsApp seller
+      // Menyimpan umpan balik
+      await set(feedbackRef, { rating, comment });
+      // Memperbarui data pesanan
+      const orderSnapshot = await get(orderRef);
+      if (!orderSnapshot.exists()) {
+        throw new Error('Pesanan tidak ditemukan.');
       }
-      throw new Error('Seller number not found');
+      const orderData = orderSnapshot.val();
+      const itemIndex = orderData.items.findIndex(item => item.id === productId);
+      if (itemIndex > -1) {
+        const item = orderData.items[itemIndex];
+        item.rating = rating;
+        item.comment = comment;
+        orderData.items[itemIndex] = item;
+        // Update order data dan completed orders data
+        await update(orderRef, { items: orderData.items });
+        await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
+      } else {
+        throw new Error('Produk tidak ditemukan dalam pesanan.');
+      }
     } catch (error) {
-      console.error('Error fetching seller number:', error);
+      console.error('Error saving feedback:', error);
       throw error;
     }
   }
-
+  // Mengambil umpan balik produk
+  static async getProductFeedback(productId) {
+    const db = getDatabase();
+    const feedbackRef = ref(db, `product-feedback/${productId}`);
+    try {
+      const feedbackSnapshot = await get(feedbackRef);
+      if (!feedbackSnapshot.exists()) {
+        return [];
+      }
+      const feedbackData = feedbackSnapshot.val();
+      const feedbacks = Object.entries(feedbackData).map(([userId, feedback]) => ({
+        userId,
+        ...feedback
+      }));
+      console.log('Data umpan balik produk diambil dari Firebase:', feedbacks);
+      return feedbacks;
+    } catch (error) {
+      console.error('Error fetching product feedback:', error);
+      throw error;
+    }
+  }
+  // Mengambil pesanan yang telah selesai
+  static async getCompletedOrders(userId) {
+    const db = getDatabase();
+    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
+    try {
+      const completedOrdersSnapshot = await get(completedOrdersRef);
+      if (completedOrdersSnapshot.exists()) {
+        return Object.values(completedOrdersSnapshot.val());
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching completed orders:', error);
+      throw error;
+    }
+  }
   // Menghapus pesanan yang telah selesai
   static async deleteCompletedOrder(orderId) {
     const db = getDatabase();
@@ -134,6 +143,33 @@ class OrderData {
       throw error;
     }
   }
-}
+  // Mengambil pesanan berdasarkan produk yang dijual
+  static async getOrdersByProducts(products) {
+    const db = getDatabase();
+    const ordersRef = ref(db, 'orders');
+    try {
+      const ordersSnapshot = await get(ordersRef);
+      if (!ordersSnapshot.exists()) {
+        return [];
+      }
+      const ordersData = ordersSnapshot.val();
+      const allOrders = [];
 
+      Object.values(ordersData).forEach(userOrders => {
+        Object.values(userOrders).forEach(order => {
+          if (products) {
+            const matchingProducts = order.items.filter(item => products.find(product => product.id === item.id));
+            if (matchingProducts.length > 0) {
+              allOrders.push(order);
+            }
+          }
+        });
+      });
+      return allOrders;
+    } catch (error) {
+      console.error('Error fetching orders by products:', error);
+      throw error;
+    }
+  }
+}
 export default OrderData;
