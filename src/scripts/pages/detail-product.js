@@ -125,7 +125,10 @@ const DetailProductPage = {
         });
       } else {
         feedbackList.innerHTML = '<p>Tidak ada ulasan untuk produk ini.</p>';
-	@@ -149,5 +132,4 @@ const DetailProductPage = {
+      }
+    } catch (error) {
+      console.error('Error fetching product feedback:', error);
+      feedbackList.innerHTML = '<p>Gagal memuat ulasan produk.</p>';
     }
   },
 };
