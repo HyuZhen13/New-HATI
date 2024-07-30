@@ -15,7 +15,8 @@ const CartPage = {
   },
 
   async afterRender() {
-    const cartItems = await CartData.getCartItems();
+    const userId = UserInfo.getUserInfo().uid;
+    const cartItems = await CartData.getCartItems(userId);
     const cartItemsContainer = document.querySelector('#cart-items');
     const totalPriceContainer = document.querySelector('#total-price');
     const checkoutButton = document.querySelector('#checkout');
@@ -42,14 +43,14 @@ const CartPage = {
           alert('Jumlah melebihi stok yang tersedia.');
           e.target.value = item.quantity;
         } else {
-          await CartData.updateCartItem(item.id, quantity);
+          await CartData.updateCartItem(userId, item.id, quantity);
           location.reload();
         }
       });
 
       const removeButton = cartItem.querySelector('.remove-button');
       removeButton.addEventListener('click', async () => {
-        await CartData.removeCartItem(item.id);
+        await CartData.removeCartItem(userId, item.id);
         location.reload();
       });
     });
@@ -71,7 +72,7 @@ const CartPage = {
       const paymentProof = CartData.getPaymentProof();
       if (paymentProof) {
         try {
-          await CartData.moveToOrderPage();
+          await CartData.moveToOrderPage(userId);
           location.href = '#/order';
         } catch (error) {
           alert('Gagal melakukan checkout: ' + error.message);
