@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable object-shorthand */
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import UserInfo from './user-info';
 
 class OrderData {
@@ -177,6 +178,44 @@ class OrderData {
       return allOrders;
     } catch (error) {
       console.error('Error fetching orders by products:', error);
+      throw error;
+    }
+  }
+
+  // Mengupload file PDF ke Firebase Storage
+  static async uploadPDF(pdfBlob) {
+    const db = getDatabase();
+    const userId = UserInfo.getUserInfo().uid;
+    const storage = getStorage();
+    const storageRef = ref(storage, `pdfs/orders/${userId}/${Date.now()}.pdf`);
+
+    try {
+      await uploadBytes(storageRef, pdfBlob);
+      const downloadURL = await getDownloadURL(storageRef);
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      throw error;
+    }
+  }
+
+  // Mengambil nomor WhatsApp seller berdasarkan ID produk
+  static async getSellerNumber(productId) {
+    const db = getDatabase();
+    const productRef = ref(db, `products/${productId}`);
+    try {
+      const productSnapshot = await get(productRef);
+      if (!productSnapshot.exists()) {
+        throw new Error('Produk tidak ditemukan.');
+      }
+      const productData = productSnapshot.val();
+      const sellerNumber = productData.sellerNumber; // Asumsi bahwa sellerNumber ada di data produk
+      if (!sellerNumber) {
+        throw new Error('Nomor WhatsApp seller tidak tersedia.');
+      }
+      return sellerNumber;
+    } catch (error) {
+      console.error('Error fetching seller number:', error);
       throw error;
     }
   }
