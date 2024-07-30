@@ -40,13 +40,6 @@ const ProfilePage = {
         <div id="order-list"></div>
       </div>
     </article>
-
-    <article class="pdf-article">
-      <div class="pdf-container">
-        <h2>PDF Reports</h2>
-        <div id="pdf-list"></div>
-      </div>
-    </article>
     `;
   },
 
@@ -216,27 +209,6 @@ const ProfilePage = {
       }
     } catch (error) {
       console.log('Error getting products or orders:', error.message);
-    }
-
-    const pdfList = document.querySelector('#pdf-list');
-
-    // Get sold products and create PDF links
-    try {
-      const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
-      if (orders.length > 0) {
-        orders.forEach(order => {
-          const pdfLink = document.createElement('a');
-          pdfLink.href = `./pdf-reports/${order.id}.pdf`; // Assuming PDF files are stored in a 'pdf-reports' directory
-          pdfLink.innerText = `Order ID: ${order.id}`;
-          pdfList.appendChild(pdfLink);
-        });
-      } else {
-        const noPdfText = document.createElement('h4');
-        noPdfText.innerText = 'No PDF reports available.';
-        pdfList.appendChild(noPdfText);
-      }
-    } catch (error) {
-      console.log('Error getting PDF reports:', error.message);
     }
 
     // Show pop-up notification for new orders
