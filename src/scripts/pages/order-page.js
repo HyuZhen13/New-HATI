@@ -23,7 +23,7 @@ const OrderPage = {
     const userId = UserInfo.getUserInfo().uid;
 
     try {
-      const order = await OrderData.getCurrentOrder();
+      const order = await OrderData.getCurrentOrder(userId);
       if (order) {
         orderDetailsContainer.innerHTML = `
           <h2>Pesanan Anda</h2>
@@ -59,6 +59,9 @@ const OrderPage = {
                 await OrderData.saveProductFeedback(saveFeedbackButton.dataset.orderId, saveFeedbackButton.dataset.id, rating, comment);
                 alert('Feedback berhasil disimpan!');
                 console.log('Feedback saved successfully');
+                await OrderData.moveOrderToCompleted(saveFeedbackButton.dataset.orderId); // Pindahkan pesanan ke daftar selesai
+                await this.renderCurrentOrder(); // Render ulang daftar pesanan saat ini
+                await this.renderCompletedOrders(); // Render ulang daftar pesanan selesai
               } catch (error) {
                 console.error('Error saving feedback:', error);
                 alert('Terjadi kesalahan saat menyimpan feedback.');
