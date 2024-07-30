@@ -148,10 +148,12 @@ const ProfilePage = {
     // Get user's products
     try {
       const products = await ProductData.getProduct();
+      const userProducts = [];
       if (products) {
         console.log('Product data:', products);
         Object.values(products).reverse().forEach((item) => {
           if (item.uid === UserInfo.getUserInfo().uid) {
+            userProducts.push(item);
             const productItem = document.createElement('div');
             productItem.innerHTML = `
               <div class="card">
@@ -184,46 +186,77 @@ const ProfilePage = {
         productText.innerText = 'Products not found.';
         productUserList.appendChild(productText);
       }
+
+      // Get sold products orders
+      if (userProducts.length > 0) {
+        const allOrders = await OrderData.getAllOrders();
+        const soldProductsOrders = allOrders.filter(order => 
+          order.items.some(item => userProducts.find(product => product.id === item.id))
+        );
+
+        if (soldProductsOrders.length > 0) {
+          soldProductsOrders.forEach(order => {
+            order.items.forEach(item => {
+              if (userProducts.find(product => product.id === item.id)) {
+                const orderItem = document.createElement('div');
+                orderItem.innerHTML = `
+                  <div class="order-item">
+                    <h5>Order ID: ${order.id}</h5>
+                    <p>Product: ${item.name}</p>
+                    <p>Quantity: ${item.quantity}</p>
+                    <p>Price: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+                    <p>Payment Proof: <a href="${order.paymentProof}" target="_blank">View</a></p>
+                  </div>
+                `;
+                orderList.appendChild(orderItem);
+              }
+            });
+          });
+        } else {
+          const noOrdersText = document.createElement('h4');
+          noOrdersText.innerText = 'No sold products available.';
+          orderList.appendChild(noOrdersText);
+        }
+      }
     } catch (error) {
-      console.log('Error getting products:', error.message);
+      console.log('Error getting products or orders:', error.message);
     }
 
-    // Get sold products
+    const pdfList = document.querySelector('#pdf-list');
+
+    // Get sold products and create PDF links
     try {
       const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
       if (orders.length > 0) {
-        orders.forEach(async (order) => {
-          order.items.forEach(async (item) => {
-            // Get product data for each item
-            const product = await ProductData.getProductById(item.id);
-            if (product) {
-              const orderItem = document.createElement('div');
-              orderItem.innerHTML = `
-                <div class="order-card">
-                  <img src="${product.image}" class="order-card-img-top" alt="${product.name}">
-                  <div class="order-card-body">
-                    <h5 class="order-card-title">${product.name}</h5>
-                    <p class="order-card-text">Quantity: ${item.quantity}</p>
-                    <p class="order-card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price * item.quantity)}</p>
-                    <p class="order-card-text">Rating: ${item.rating || 'Not Rated'}</p>
-                    <p class="order-card-text">Comment: ${item.comment || 'No Comment'}</p>
-                    <p class="order-card-text">Payment Proof: <a href="${order.paymentProof}" target="_blank">View</a></p>
-                  </div>
-                </div>
-              `;
-              orderList.appendChild(orderItem);
-            }
-          });
+        orders.forEach(order => {
+          const pdfLink = document.createElement('a');
+          pdfLink.href = `./pdf-reports/${order.id}.pdf`; // Assuming PDF files are stored in a 'pdf-reports' directory
+          pdfLink.innerText = `Order ID: ${order.id}`;
+          pdfList.appendChild(pdfLink);
         });
       } else {
-        const noOrdersText = document.createElement('h4');
-        noOrdersText.innerText = 'No sold products available.';
-        orderList.appendChild(noOrdersText);
+        const noPdfText = document.createElement('h4');
+        noPdfText.innerText = 'No PDF reports available.';
+        pdfList.appendChild(noPdfText);
       }
     } catch (error) {
-      console.log('Error getting orders:', error.message);
+      console.log('Error getting PDF reports:', error.message);
     }
-  }
+
+    // Show pop-up notification for new orders
+    const newOrderNotification = async () => {
+      try {
+        const orders = await OrderData.getCompletedOrders(UserInfo.getUserInfo().uid);
+        if (orders.length > 0) {
+          alert('New order available');
+        }
+      } catch (error) {
+        console.log('Error getting new orders:', error.message);
+      }
+    };
+
+    await newOrderNotification();
+  },
 };
 
 export default ProfilePage;
