@@ -157,6 +157,24 @@ class OrderData {
     const pdfUrl = URL.createObjectURL(pdfBlob);
     return pdfUrl;
   }
+
+  // Mendapatkan detail pesanan yang selesai
+  static async getCompletedOrderDetails(orderId) {
+    const db = getDatabase();
+    const userId = UserInfo.getUserInfo().uid;
+    const orderRef = ref(db, `completed-orders/${userId}/${orderId}`);
+    
+    try {
+      const orderSnapshot = await get(orderRef);
+      if (!orderSnapshot.exists()) {
+        throw new Error('Pesanan tidak ditemukan.');
+      }
+      return orderSnapshot.val();
+    } catch (error) {
+      console.error('Error fetching completed order details:', error);
+      throw error;
+    }
+  }
 }
 
 export default OrderData;
