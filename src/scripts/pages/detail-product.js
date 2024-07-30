@@ -1,7 +1,8 @@
 import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
-import OrderData from '../utils/order-data';
+import CartData from '../utils/cart-data';
+import OrderData from '../utils/order-data'; // Import OrderData untuk mendapatkan umpan balik produk
 
 const DetailProductPage = {
   async render() {
@@ -108,36 +109,23 @@ const DetailProductPage = {
       moreProduct.appendChild(productText);
     }
 
-    // Menambahkan bagian untuk menampilkan semua komentar dan rating produk
+    // Menambahkan bagian untuk menampilkan komentar dan rating produk
     try {
-      const orders = await OrderData.getOrdersByProductId(product.id); // Update method to get all orders by product ID
-      if (orders.length > 0) {
-        // Create a map to store user names
-        const userNames = {};
-        for (const order of orders) {
-          const user = await UserData.getUserData(order.userId);
-          userNames[order.userId] = user.name;
-        }
-        orders.forEach(order => {
-          order.items.forEach(item => {
-            if (item.id === product.id) {
-              const feedbackItem = document.createElement('div');
-              feedbackItem.classList.add('feedback-item');
-              feedbackItem.innerHTML = `
-                <p><strong>${userNames[order.userId] || 'Unknown User'}</strong></p>
-                <p>Rating: ${item.rating || 'No rating'} / 5</p>
-                <p>${item.comment || 'No review'}</p>
-              `;
-              feedbackList.appendChild(feedbackItem);
-            }
-          });
+      const feedbacks = await OrderData.getProductFeedback(product.id);
+      if (feedbacks.length > 0) {
+        feedbacks.forEach(feedback => {
+          const feedbackItem = document.createElement('div');
+          feedbackItem.classList.add('feedback-item');
+          feedbackItem.innerHTML = `
+            <p><strong>${feedback.userId}</strong></p>
+            <p>Rating: ${feedback.rating} / 5</p>
+            <p>${feedback.comment}</p>
+          `;
+          feedbackList.appendChild(feedbackItem);
         });
       } else {
         feedbackList.innerHTML = '<p>Tidak ada ulasan untuk produk ini.</p>';
-      }
-    } catch (error) {
-      console.error('Error fetching product feedback:', error);
-      feedbackList.innerHTML = '<p>Gagal memuat ulasan produk.</p>';
+	@@ -149,5 +132,4 @@ const DetailProductPage = {
     }
   },
 };
