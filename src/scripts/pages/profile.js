@@ -1,104 +1,42 @@
+/* eslint-disable max-len */
+import ProductData from '../utils/product-data';
+import UserData from '../utils/user-data';
+import UserInfo from '../utils/user-info';
+import VerificationData from '../utils/verification-data';
+
 const ProfilePage = {
   async render() {
     return `
-    <style>
-      .profile-article, .product-article, .order-article {
-        margin-bottom: 20px;
-      }
-      .profile-container, .product-container, .order-container {
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        background: #fff;
-      }
-      .profile-container img {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        object-fit: cover;
-        cursor: pointer;
-        margin-bottom: 20px;
-      }
-      .profile-container input, .profile-container textarea {
-        width: 100%;
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-      }
-      .profile-container button {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        background: #007bff;
-        color: #fff;
-        cursor: pointer;
-      }
-      .product-container, .order-container {
-        margin-top: 20px;
-      }
-      .product-item, .order-item {
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        overflow: hidden;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-      .product-item img, .order-item img {
-        width: 100%;
-        height: auto;
-      }
-      .product-item .card-body, .order-item .order-body {
-        padding: 15px;
-        background: #f9f9f9;
-      }
-      .product-item .card-footer, .order-item .order-footer {
-        padding: 10px 15px;
-        background: #007bff;
-        color: #fff;
-      }
-      .product-item .card-footer small, .order-item .order-footer small {
-        font-size: 0.9em;
-      }
-      .order-item .order-body h5, .order-item .order-body p {
-        margin: 5px 0;
-      }
-    </style>
-    
-    <article class="profile-article">
-      <div class="profile-container">
-        <form name="profileForm" id="profile-form" method="POST" enctype="multipart/form-data">
+    <article class="profile-article"> 
+    <div class="profile-container">
+    <form name="profileForm" id="profile-form" method="POST" enctype="multipart/form-data">
           <div>
-            <img id="profile-photo" src="./images/profile.png" alt="Profile Photo">
+            <img id="profile-photo" src="./images/profile.png">
           </div>
           <input placeholder="Store Name" name="userName" id="userName">
           <input placeholder="Phone Number" name="userPhone" id="userPhone">
           <input placeholder="Social Media (Link)" name="userSocmed" id="userSocmed">
           <textarea placeholder="Description" name="userDesc" id="userDesc"></textarea>
-          <input type="file" name="profileImage" id="profileImgInput" style="display:none;">
+          <input type="file" name="profileImage" id="profileImgInput"style="display:none;">
           <label id="verificationLabel">Submit Verification (PDF only)</label>
           <input type="file" name="storeVerification" id="storeVerification" accept="application/pdf">
-          <button type="submit">Save Changes</button>
+          <button type="submit" >Save Changes</button>
           <button id="logout-btn">Logout</button>
-        </form>
+      </form>
+    </div>
+  </article>
+
+  <article class="product-article">
+    
+    <div class="product-container">
+    <a id="addProduct" href="#/add-product" >Add Product +</a>
+    <h2>My Product</h2>
+      <div id="product-list">
+        
       </div>
-    </article>
-    <article class="product-article">
-      <div class="product-container">
-        <a id="addProduct" href="#/add-product">Add Product +</a>
-        <h2>My Products</h2>
-        <div id="product-list"></div>
-      </div>
-    </article>
-    <article class="order-article">
-      <div class="order-container">
-        <h2>Sold Products</h2>
-        <div id="order-list"></div>
-      </div>
-    </article>
-    `;
+    </div>
+  </article>
+        `;
   },
   async afterRender() {
     const profileImg = document.querySelector('#profile-photo');
@@ -110,156 +48,111 @@ const ProfilePage = {
     const userDesc = document.querySelector('#userDesc');
     const verificationPdf = document.querySelector('#storeVerification');
     const verificationLabel = document.querySelector('#verificationLabel');
-    const profileImgInput = document.querySelector('#profileImgInput');
-    // Logout
+
     logout.addEventListener('click', (event) => {
       event.preventDefault();
       UserInfo.deleteUserInfo();
       location.href = '#/';
+      location.reload();
     });
-    // Upload profile image
+
+    const profileImgInput = document.querySelector('#profileImgInput');
     profileImg.addEventListener('click', () => {
       profileImgInput.click();
     });
     profileImgInput.addEventListener('change', async () => {
-      const file = profileImgInput.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          profileImg.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-    // Get user data
+      const file = await profileImgInput.files[0];
+      const reader = new FileReader();
+      reader.onload = async () => {
+        profileImg.src = reader.result;
+      };
+      if (file) reader.readAsDataURL(file);
+    }, false);
+
     try {
       const userData = await UserData.getUserData(UserInfo.getUserInfo().uid);
-      console.log('User data:', userData);
-      userName.value = userData.name || '';
-      userPhone.value = userData.phone || '';
-      userSocmed.value = userData.socmed || '';
-      userDesc.value = userData.desc || '';
-      profileImg.src = userData.photo || './images/profile.png';
+      console.log(userData.isVerified);
+      userName.setAttribute('value', userData.name);
+      if (userData.phone) userPhone.setAttribute('value', userData.phone);
+      if (userData.socmed) userSocmed.setAttribute('value', userData.socmed);
+      if (userData.desc) userDesc.innerText = userData.desc;
+      if (userData.photo) profileImg.setAttribute('src', userData.photo);
       if (userData.isVerified === 'pending') {
-        verificationPdf.style.display = 'none';
+        verificationPdf.setAttribute('type', 'hidden');
         verificationLabel.innerText = 'Verification Pending';
-      } else if (userData.isVerified === 'verified') {
-        verificationPdf.style.display = 'none';
+      }
+      if (userData.isVerified === 'verified') {
+        verificationPdf.setAttribute('type', 'hidden');
         verificationLabel.innerText = 'You Are Verified!';
       }
     } catch (error) {
-      console.log('Error getting user data:', error.message);
-    }
-    // Save profile changes
-    profileForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const userData = {
-        name: userName.value,
-        phone: userPhone.value,
-        socmed: userSocmed.value,
-        desc: userDesc.value,
-        email: UserInfo.getUserInfo().email,
-        uid: UserInfo.getUserInfo().uid,
-      };
-      const imgFile = profileImgInput.files[0];
-      const verificationFile = verificationPdf.files[0];
-      try {
-        console.log('Saving user data:', userData);
-        await UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
-        
-        if (imgFile) {
-          console.log('Uploading profile photo:', imgFile);
-          await UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
-        }
-        
-        if (verificationFile) {
-          console.log('Submitting verification:', verificationFile);
-          await VerificationData.submitVerification({ uid: UserInfo.getUserInfo().uid }, verificationFile);
-        }
-        alert('Successfully updated.');
-      } catch (e) {
-        console.log('Error saving changes:', e.message);
-      }
-    });
-    const productUserList = document.querySelector('#product-list');
-    const orderList = document.querySelector('#order-list');
-    // Get user's products
-    try {
-      const products = await ProductData.getProduct();
-      const userProducts = [];
-      if (products) {
-        console.log('Product data:', products);
-        Object.values(products).reverse().forEach((item) => {
-          if (item.uid === UserInfo.getUserInfo().uid) {
-            userProducts.push(item);
-            const productItem = document.createElement('div');
-            productItem.innerHTML = `
-              <div class="card">
-                <img src="${item.image}" class="card-img-top" alt="${item.name}">
-                <div class="card-body">
-                  <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                  <h5 class="card-title">${item.name}</h5>
-                </div>
-                <div class="card-footer">
-                  <small class="text-muted">${item.seller} <i class="fa-solid fa-circle-check fa-lg"></i></small>
-                </div>
-              </div>
-            `;
-            productItem.setAttribute('class', 'product-item');
-            productItem.addEventListener('click', (event) => {
-              event.preventDefault();
-              location.href = `#/edit-product/${item.id}`;
-            });
-            productUserList.appendChild(productItem);
-          }
-        });
-        if (productUserList.childElementCount === 0) {
-          const productText = document.createElement('h4');
-          productText.innerText = 'You do not have any products.';
-          productUserList.appendChild(productText);
-        }
-      } else {
-        const productText = document.createElement('h4');
-        productText.innerText = 'You do not have any products.';
-        productUserList.appendChild(productText);
-      }
-    } catch (error) {
-      console.log('Error getting product data:', error.message);
+      console.log(error.message);
     }
 
-    // Get sold products
-    try {
-      const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
-      if (orders && orders.length > 0) {
-        console.log('Orders data:', orders);
-        orders.forEach((order) => {
-          order.items.forEach((item) => {
-            const orderItem = document.createElement('div');
-            orderItem.innerHTML = `
-              <div class="order-item">
-                <img src="${item.image}" class="order-img-top" alt="${item.name}">
-                <div class="order-body">
-                  <h5 class="order-title">${item.name}</h5>
-                  <p class="order-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                  <p class="order-quantity">Quantity: ${item.quantity}</p>
-                </div>
-                <div class="order-footer">
-                  <small class="text-muted">Buyer: ${order.buyerName}</small>
-                </div>
-              </div>
-            `;
-            orderList.appendChild(orderItem);
-          });
-        });
-      } else {
-        const orderText = document.createElement('h4');
-        orderText.innerText = 'No products sold.';
-        orderList.appendChild(orderText);
+    profileForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const userData = {
+        name: '', phone: '', socmed: '', desc: '', seller: '', email: UserInfo.getUserInfo().email, uid: UserInfo.getUserInfo().uid,
+      };
+      const verification = {
+        uid: UserInfo.getUserInfo().uid,
+      };
+
+      userData.name = document.forms.profileForm.userName.value;
+      userData.phone = document.forms.profileForm.userPhone.value;
+      userData.socmed = document.forms.profileForm.userSocmed.value;
+      userData.desc = document.forms.profileForm.userDesc.value;
+      const imgFile = document.querySelector('#profileImgInput').files[0];
+
+      try {
+        UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
+        if (imgFile) UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
+        if (verificationPdf) VerificationData.submitVerification(verification, verificationPdf.files[0]);
+      } catch (e) {
+        console.log(e.message);
+      } finally {
+        this.render();
+        // eslint-disable-next-line no-alert
+        alert('Succesfully Updated.');
       }
-    } catch (error) {
-      console.log('Error getting orders:', error.message);
+    });
+
+    const productUserList = document.querySelector('#product-list');
+
+    const product = await ProductData.getProduct();
+    if (product) {
+      Object.values(product).reverse().forEach((item) => {
+        const productItem = document.createElement('div');
+        productItem.innerHTML = `
+            <div class="card">
+              <img src="${item.image}" class="card-img-top" alt="...">
+              <div class="card-body">
+              <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+              <h5 class="card-title">${item.name}</h5>
+              </div>
+              <div class="card-footer">
+              <small class="text-muted">${item.seller} <i class="fa-solid fa-circle-check fa-lg"></i></small>
+            </div>
+          `;
+        productItem.setAttribute('class', 'product-item');
+        productItem.addEventListener('click', (event) => {
+          event.preventDefault();
+          location.href = `#/edit-product/${item.id}`;
+        });
+        if (item.uid === UserInfo.getUserInfo().uid) {
+          productUserList.appendChild(productItem);
+        }
+      });
+      if (productUserList.childElementCount === 0) {
+        const productText = document.createElement('h4');
+        productText.innerText = 'You have no product.';
+        productUserList.appendChild(productText);
+      }
+    } else {
+      const productText = document.createElement('h4');
+      productText.innerText = 'Product does not exist.';
+      productUserList.appendChild(productText);
     }
   },
 };
-
 export default ProfilePage;
