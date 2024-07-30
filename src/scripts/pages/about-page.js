@@ -177,10 +177,8 @@ const AboutPage = {
     <div class="footer-developer"><p> Tim Pengembang :</p></div>
     <div class="footer-developer-list">
       <ul>
-        <li>- Bakkah Maulana Manshur </li>
-        <li>- M Johansyah Diaz Wirawan </li>
-        <li>- Rakan Yuvi Ispradityo </li>
-        <li>- Husain Abdullah </li>
+        <li>- Hyuzhen IT ( Developer ) </li>
+        <li>- Sekretaris Sri Rahayu 3 ( Admin ) </li>
       </ul>
     </div>
     </div>
