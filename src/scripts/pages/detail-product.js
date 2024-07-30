@@ -59,6 +59,9 @@ const DetailProductPage = {
     const addToCart = document.querySelector('#add-to-cart');
     addToCart.addEventListener('click', async (event) => {
       event.preventDefault();
+      const userData = await UserData.getUserData(product.uid); // Dapatkan data user
+      console.log('userData:', userData); // Tambahkan console.log untuk memeriksa userData
+
       const cartItem = {
         id: product.id,
         name: product.name,
@@ -66,8 +69,11 @@ const DetailProductPage = {
         price: product.price,
         quantity: 1, // default quantity to 1
         uid: product.uid,
+        phone: userData.phone, // Tambahkan phone ke cartItem
+        seller: userData.name, // Tambahkan seller ke cartItem
       };
-      
+      console.log('cartItem:', cartItem); // Tambahkan console.log untuk memeriksa cartItem
+
       if (product.stock > 0) {
         await CartData.addCartItem(cartItem);
         alert('Produk telah ditambahkan ke keranjang');
@@ -96,7 +102,7 @@ const DetailProductPage = {
             <h5 class="card-title">${item.name}</h5>
           </div>
           <div class="card-footer">
-            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
+            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg'></i>' : ''}</small>
           </div>
         </div>
       `;
