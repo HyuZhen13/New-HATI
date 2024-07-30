@@ -1,23 +1,40 @@
 import UserData from '../utils/user-data';
 import UserInfo from '../utils/user-info';
 import VerificationData from '../utils/verification-data';
+import ProductData from '../utils/product-data'; // Pastikan ProductData diimpor
 
 const ProfilePage = {
   async render() {
-	@@ -27,13 +28,17 @@ const ProfilePage = {
-  </article>
-  <article class="product-article">
-    
-    <div class="product-container">
-    <a id="addProduct" href="#/add-product" >Add Product +</a>
-    <h2>My Product</h2>
-      <div id="product-list">
-        
+    return `
+    <article class="profile-article">
+      <h2>Profile</h2>
+      <form id="profile-form">
+        <input type="file" id="profileImgInput" style="display: none;" />
+        <img id="profile-photo" src="" alt="Profile Photo" />
+        <label for="userName">Name</label>
+        <input type="text" id="userName" name="userName" />
+        <label for="userPhone">Phone</label>
+        <input type="text" id="userPhone" name="userPhone" />
+        <label for="userSocmed">Social Media</label>
+        <input type="text" id="userSocmed" name="userSocmed" />
+        <label for="userDesc">Description</label>
+        <textarea id="userDesc" name="userDesc"></textarea>
+        <button type="submit">Update Profile</button>
+        <button id="logout-btn">Logout</button>
+        <input type="file" id="storeVerification" />
+        <label id="verificationLabel"></label>
+      </form>
+    </article>
+    <article class="product-article">
+      <div class="product-container">
+        <a id="addProduct" href="#/add-product">Add Product +</a>
+        <h2>My Products</h2>
+        <div id="product-list"></div>
       </div>
-    </div>
-  </article>
-        `;
+    </article>
+    `;
   },
+
   async afterRender() {
     const profileImg = document.querySelector('#profile-photo');
     const profileForm = document.querySelector('#profile-form');
@@ -28,106 +45,122 @@ const ProfilePage = {
     const userDesc = document.querySelector('#userDesc');
     const verificationPdf = document.querySelector('#storeVerification');
     const verificationLabel = document.querySelector('#verificationLabel');
+
     logout.addEventListener('click', (event) => {
       event.preventDefault();
       UserInfo.deleteUserInfo();
       location.href = '#/';
       location.reload();
     });
+
     const profileImgInput = document.querySelector('#profileImgInput');
     profileImg.addEventListener('click', () => {
       profileImgInput.click();
     });
+
     profileImgInput.addEventListener('change', async () => {
-      const file = await profileImgInput.files[0];
-      const reader = new FileReader();
-      reader.onload = async () => {
-        profileImg.src = reader.result;
-      };
-      if (file) reader.readAsDataURL(file);
-    }, false);
+      const file = profileImgInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          profileImg.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
     try {
       const userData = await UserData.getUserData(UserInfo.getUserInfo().uid);
       console.log(userData.isVerified);
-      userName.setAttribute('value', userData.name);
-      if (userData.phone) userPhone.setAttribute('value', userData.phone);
-      if (userData.socmed) userSocmed.setAttribute('value', userData.socmed);
-      if (userData.desc) userDesc.innerText = userData.desc;
-      if (userData.photo) profileImg.setAttribute('src', userData.photo);
+      userName.value = userData.name || '';
+      userPhone.value = userData.phone || '';
+      userSocmed.value = userData.socmed || '';
+      userDesc.innerText = userData.desc || '';
+      profileImg.src = userData.photo || '';
+      
       if (userData.isVerified === 'pending') {
-        verificationPdf.setAttribute('type', 'hidden');
+        verificationPdf.style.display = 'none';
         verificationLabel.innerText = 'Verification Pending';
-      }
-      if (userData.isVerified === 'verified') {
-        verificationPdf.setAttribute('type', 'hidden');
+      } else if (userData.isVerified === 'verified') {
+        verificationPdf.style.display = 'none';
         verificationLabel.innerText = 'You Are Verified!';
       }
     } catch (error) {
-      console.log(error.message);
+      console.log('Error fetching user data:', error.message);
     }
 
-    profileForm.addEventListener('submit', (event) => {
+    profileForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const userData = {
-        name: '', phone: '', socmed: '', desc: '', seller: '', email: UserInfo.getUserInfo().email, uid: UserInfo.getUserInfo().uid,
+        name: userName.value,
+        phone: userPhone.value,
+        socmed: userSocmed.value,
+        desc: userDesc.value,
+        seller: '',
+        email: UserInfo.getUserInfo().email,
+        uid: UserInfo.getUserInfo().uid,
       };
       const verification = {
         uid: UserInfo.getUserInfo().uid,
       };
-      userData.name = document.forms.profileForm.userName.value;
-      userData.phone = document.forms.profileForm.userPhone.value;
-      userData.socmed = document.forms.profileForm.userSocmed.value;
-      userData.desc = document.forms.profileForm.userDesc.value;
-      const imgFile = document.querySelector('#profileImgInput').files[0];
+      const imgFile = profileImgInput.files[0];
 
       try {
-        UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
-        if (imgFile) UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
-        if (verificationPdf) VerificationData.submitVerification(verification, verificationPdf.files[0]);
+        await UserData.updateUserData(userData, UserInfo.getUserInfo().uid);
+        if (imgFile) await UserData.updateUserProfilePhoto(imgFile, UserInfo.getUserInfo().uid);
+        if (verificationPdf.files[0]) await VerificationData.submitVerification(verification, verificationPdf.files[0]);
       } catch (e) {
-        console.log(e.message);
+        console.log('Error updating user data:', e.message);
       } finally {
         this.render();
         // eslint-disable-next-line no-alert
-        alert('Succesfully Updated.');
+        alert('Successfully Updated.');
       }
     });
 
     const productUserList = document.querySelector('#product-list');
-    const product = await ProductData.getProduct();
-    if (product) {
-      Object.values(product).reverse().forEach((item) => {
-        const productItem = document.createElement('div');
-        productItem.innerHTML = `
-            <div class="card">
-              <img src="${item.image}" class="card-img-top" alt="...">
-              <div class="card-body">
-              <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-              <h5 class="card-title">${item.name}</h5>
+    try {
+      const products = await ProductData.getProduct();
+      if (products) {
+        Object.values(products).reverse().forEach((item) => {
+          if (item.uid === UserInfo.getUserInfo().uid) {
+            const productItem = document.createElement('div');
+            productItem.innerHTML = `
+              <div class="card">
+                <img src="${item.image}" class="card-img-top" alt="${item.name}">
+                <div class="card-body">
+                  <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+                  <h5 class="card-title">${item.name}</h5>
+                </div>
+                <div class="card-footer">
+                  <small class="text-muted">${item.seller} <i class="fa-solid fa-circle-check fa-lg"></i></small>
+                </div>
               </div>
-              <div class="card-footer">
-              <small class="text-muted">${item.seller} <i class="fa-solid fa-circle-check fa-lg"></i></small>
-            </div>
-          `;
-        productItem.setAttribute('class', 'product-item');
-        productItem.addEventListener('click', (event) => {
-          event.preventDefault();
-          location.href = `#/edit-product/${item.id}`;
+            `;
+            productItem.classList.add('product-item');
+            productItem.addEventListener('click', () => {
+              location.href = `#/edit-product/${item.id}`;
+            });
+            productUserList.appendChild(productItem);
+          }
         });
-        if (item.uid === UserInfo.getUserInfo().uid) {
-          productUserList.appendChild(productItem);
+        if (productUserList.childElementCount === 0) {
+          const productText = document.createElement('h4');
+          productText.innerText = 'You have no products.';
+          productUserList.appendChild(productText);
         }
-      });
-      if (productUserList.childElementCount === 0) {
+      } else {
         const productText = document.createElement('h4');
-        productText.innerText = 'You have no product.';
+        productText.innerText = 'Products do not exist.';
         productUserList.appendChild(productText);
       }
-    } else {
+    } catch (error) {
+      console.log('Error fetching products:', error.message);
       const productText = document.createElement('h4');
-      productText.innerText = 'Product does not exist.';
+      productText.innerText = 'Error fetching products.';
       productUserList.appendChild(productText);
     }
   },
 };
+
 export default ProfilePage;
