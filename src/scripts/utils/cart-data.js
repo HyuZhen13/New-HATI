@@ -41,7 +41,7 @@ class CartData {
     }
   }
 
-  static async removeCartItem(id) {
+  static async removeCartItem(userId, id) {
     const cartRef = this.getUserCartRef();
     const cartItems = await this.getCartItems();
     const updatedCartItems = cartItems.filter(item => item.id !== id);
@@ -53,7 +53,7 @@ class CartData {
     }
   }
 
-  static async updateCartItem(id, quantity) {
+  static async updateCartItem(userId, id, quantity) {
     const cartRef = this.getUserCartRef();
     const cartItems = await this.getCartItems();
     const item = cartItems.find(i => i.id === id);
