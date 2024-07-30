@@ -41,6 +41,7 @@ const OrderPage = {
               <h4>${item.name}</h4>
               <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
               <p>Jumlah: ${item.quantity}</p>
+              <p>Penjual: ${item.sellerName}</p>
               <textarea class="comment-input" placeholder="Tulis komentar..."></textarea>
               <input type="number" class="rating-input" min="1" max="5" placeholder="Rating (1-5)" />
               <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
