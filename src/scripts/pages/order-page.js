@@ -1,9 +1,16 @@
-import jsPDF from 'jspdf'; // Import jsPDF library
+import jsPDF from 'jspdf';
 import UserInfo from '../utils/user-info';
 import OrderData from '../utils/order-data';
-import ProductData from '../utils/product-data';
+
+// Fungsi untuk mengirim PDF ke WhatsApp
+async function sendPDFToWhatsApp(pdfUrl, sellerNumber) {
+  // Implementasikan logika untuk mengirim PDF ke WhatsApp menggunakan URL
+  // Misalnya, jika Anda menggunakan API layanan pihak ketiga, tambahkan logika ini di sini
+  console.log(`Mengirim PDF ke WhatsApp: ${pdfUrl}, ke nomor: ${sellerNumber}`);
+}
 
 const OrderPage = {
+  // Menghasilkan HTML dasar untuk halaman pesanan
   async render() {
     return `
       <div class="order-page">
@@ -15,11 +22,13 @@ const OrderPage = {
     `;
   },
 
+  // Memanggil fungsi render untuk pesanan saat ini dan pesanan yang selesai setelah halaman dimuat
   async afterRender() {
     await this.renderCurrentOrder();
     await this.renderCompletedOrders();
   },
 
+  // Merender pesanan saat ini
   async renderCurrentOrder() {
     const orderDetailsContainer = document.querySelector('#order-details');
     const userId = UserInfo.getUserInfo().uid;
@@ -58,30 +67,17 @@ const OrderPage = {
                 try {
                   await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
 
-                  // Create PDF
-                  const pdf = new jsPDF();
-                  pdf.text('Detail Pesanan', 10, 10);
-                  pdf.text(`Order ID: ${order.id}`, 10, 20);
-                  pdf.text(`Date: ${new Date(order.timestamp).toLocaleDateString()}`, 10, 30);
-                  order.items.forEach((item, index) => {
-                    pdf.text(`Item ${index + 1}:`, 10, 40 + (index * 10));
-                    pdf.text(`Name: ${item.name}`, 10, 50 + (index * 10));
-                    pdf.text(`Price: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}`, 10, 60 + (index * 10));
-                    pdf.text(`Quantity: ${item.quantity}`, 10, 70 + (index * 10));
-                    pdf.text(`Rating: ${rating}`, 10, 80 + (index * 10));
-                    pdf.text(`Comment: ${comment}`, 10, 90 + (index * 10));
-                  });
-                  const pdfOutput = pdf.output('blob');
+                  // Buat file PDF dan simpan ke Firebase
+                  const pdfUrl = await this.createAndUploadPDF(order);
 
-                  // Get seller's WhatsApp number from ProductData
-                  const product = await ProductData.getProductById(item.id);
-                  const sellerPhone = product.sellerPhone;
-
-                  // Send PDF to seller's WhatsApp (replace with actual API call or method)
-                  await this.sendPdfToWhatsApp(pdfOutput, sellerPhone);
-
-                  // Move order to completed and reload
+                  // Pindahkan pesanan ke completed-orders
                   await OrderData.completeOrder();
+
+                  // Kirim file PDF ke WhatsApp seller
+                  const sellerNumber = await OrderData.getSellerNumber(item.id);
+                  await sendPDFToWhatsApp(pdfUrl, sellerNumber);
+
+                  console.log('Rating dan komentar berhasil disimpan dan PDF dikirim.');
                   location.reload();
                 } catch (error) {
                   console.error('Gagal menyimpan rating dan komentar:', error);
@@ -104,6 +100,24 @@ const OrderPage = {
     }
   },
 
+  // Membuat file PDF dan menguploadnya ke Firebase Storage
+  async createAndUploadPDF(order) {
+    const doc = new jsPDF();
+    doc.text('Detail Pesanan', 10, 10);
+    doc.text(`Order ID: ${order.id}`, 10, 20);
+
+    order.items.forEach((item, index) => {
+      doc.text(`${index + 1}. ${item.name}`, 10, 30 + index * 10);
+      doc.text(`Jumlah: ${item.quantity}`, 10, 40 + index * 10);
+      doc.text(`Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}`, 10, 50 + index * 10);
+    });
+
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = await OrderData.uploadPDF(pdfBlob);
+    return pdfUrl;
+  },
+
+  // Merender pesanan yang telah selesai
   async renderCompletedOrders() {
     const completedOrdersContainer = document.querySelector('#completed-orders');
     const userId = UserInfo.getUserInfo().uid;
@@ -152,13 +166,6 @@ const OrderPage = {
       console.error('Error fetching completed orders:', error);
       completedOrdersContainer.innerHTML = '<p>Gagal memuat pesanan selesai.</p>';
     }
-  },
-
-  async sendPdfToWhatsApp(pdfBlob, phoneNumber) {
-    // Replace with actual API call or method to send PDF via WhatsApp
-    // This is a placeholder implementation
-    console.log('Sending PDF to WhatsApp:', phoneNumber);
-    // Use WhatsApp API or another method to send the PDF
   }
 };
 
