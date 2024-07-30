@@ -178,6 +178,38 @@ class OrderData {
       throw error;
     }
   }
+
+  // Mengambil pesanan berdasarkan ID produk
+  static async getOrdersByProductId(productId) {
+    const db = getDatabase();
+    const ordersRef = ref(db, 'orders');
+    const completedOrdersRef = ref(db, 'completed-orders');
+    try {
+      const [ordersSnapshot, completedOrdersSnapshot] = await Promise.all([get(ordersRef), get(completedOrdersRef)]);
+      
+      const ordersData = ordersSnapshot.exists() ? ordersSnapshot.val() : {};
+      const completedOrdersData = completedOrdersSnapshot.exists() ? completedOrdersSnapshot.val() : {};
+      
+      const allOrders = { ...ordersData, ...completedOrdersData };
+      
+      const orders = [];
+      Object.values(allOrders).forEach(userOrders => {
+        Object.values(userOrders).forEach(order => {
+          const matchingProducts = order.items.filter(item => item.id === productId);
+          if (matchingProducts.length > 0) {
+            orders.push({
+              ...order,
+              userName: UserInfo.getUserInfo().name // Assuming UserInfo has a method to get the user's name
+            });
+          }
+        });
+      });
+      return orders;
+    } catch (error) {
+      console.error('Error fetching orders by product ID:', error);
+      throw error;
+    }
+  }
 }
 
 export default OrderData;
