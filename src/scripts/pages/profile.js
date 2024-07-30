@@ -189,13 +189,9 @@ const ProfilePage = {
 
       // Get sold products orders
       if (userProducts.length > 0) {
-        const allOrders = await OrderData.getAllOrders();
-        const soldProductsOrders = allOrders.filter(order => 
-          order.items.some(item => userProducts.find(product => product.id === item.id))
-        );
-
-        if (soldProductsOrders.length > 0) {
-          soldProductsOrders.forEach(order => {
+        const allOrders = await OrderData.getOrdersByProducts(userProducts);
+        if (allOrders.length > 0) {
+          allOrders.forEach(order => {
             order.items.forEach(item => {
               if (userProducts.find(product => product.id === item.id)) {
                 const orderItem = document.createElement('div');
