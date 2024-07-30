@@ -69,7 +69,7 @@ const CartPage = {
     });
 
     checkoutButton.addEventListener('click', async () => {
-      const paymentProof = CartData.getPaymentProof();
+      const paymentProof = await CartData.getPaymentProof(userId);
       if (paymentProof) {
         try {
           await CartData.moveToOrderPage(userId);
