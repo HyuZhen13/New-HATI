@@ -3,6 +3,7 @@
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import UserInfo from './user-info';
+import axios from 'axios'; // Menggunakan axios untuk HTTP request
 
 class OrderData {
   // Mengambil pesanan terkini pengguna
@@ -56,6 +57,17 @@ class OrderData {
         await set(ref(db, `completed-orders/${userId}/${latestOrderId}`), orderData);
         // Hapus pesanan dari orders
         await remove(orderRef);
+
+        // Upload PDF
+        const pdfBlob = await this.generateOrderPDF(orderData); // Anda perlu mengimplementasikan generateOrderPDF
+        const pdfURL = await this.uploadPDF(pdfBlob);
+
+        // Ambil nomor WhatsApp seller
+        const sellerNumber = await this.getSellerNumber(orderData.items[0].id); // Ambil ID produk dari orderData
+        
+        // Kirim link PDF ke WhatsApp seller
+        await this.sendPDFLinkToSeller(sellerNumber, pdfURL);
+
         return orderData;
       } else {
         throw new Error('Tidak ada pesanan yang dapat diselesaikan.');
@@ -66,137 +78,26 @@ class OrderData {
     }
   }
 
-  // Menyimpan umpan balik produk
-  static async saveProductFeedback(orderId, productId, rating, comment) {
-    const db = getDatabase();
-    const userId = UserInfo.getUserInfo().uid;
-    const feedbackRef = ref(db, `product-feedback/${productId}/${userId}`);
-    const orderRef = ref(db, `orders/${userId}/${orderId}`);
-    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
-    try {
-      // Menyimpan umpan balik
-      await set(feedbackRef, { rating, comment });
-      // Memperbarui data pesanan
-      const orderSnapshot = await get(orderRef);
-      if (!orderSnapshot.exists()) {
-        throw new Error('Pesanan tidak ditemukan.');
-      }
-      const orderData = orderSnapshot.val();
-      const itemIndex = orderData.items.findIndex(item => item.id === productId);
-      if (itemIndex > -1) {
-        const item = orderData.items[itemIndex];
-        item.rating = rating;
-        item.comment = comment;
-        orderData.items[itemIndex] = item;
-
-        // Update order data dan completed orders data
-        await update(orderRef, { items: orderData.items });
-        await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
-      } else {
-        throw new Error('Produk tidak ditemukan dalam pesanan.');
-      }
-    } catch (error) {
-      console.error('Error saving feedback:', error);
-      throw error;
-    }
-  }
-
-  // Mengambil umpan balik produk
-  static async getProductFeedback(productId) {
-    const db = getDatabase();
-    const feedbackRef = ref(db, `product-feedback/${productId}`);
-    try {
-      const feedbackSnapshot = await get(feedbackRef);
-      if (!feedbackSnapshot.exists()) {
-        return [];
-      }
-      const feedbackData = feedbackSnapshot.val();
-      const feedbacks = Object.entries(feedbackData).map(([userId, feedback]) => ({
-        userId,
-        ...feedback
-      }));
-      console.log('Data umpan balik produk diambil dari Firebase:', feedbacks);
-      return feedbacks;
-    } catch (error) {
-      console.error('Error fetching product feedback:', error);
-      throw error;
-    }
-  }
-
-  // Mengambil pesanan yang telah selesai
-  static async getCompletedOrders(userId) {
-    const db = getDatabase();
-    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
-    try {
-      const completedOrdersSnapshot = await get(completedOrdersRef);
-      if (completedOrdersSnapshot.exists()) {
-        return Object.values(completedOrdersSnapshot.val());
-      }
-      return [];
-    } catch (error) {
-      console.error('Error fetching completed orders:', error);
-      throw error;
-    }
-  }
-
-  // Menghapus pesanan yang telah selesai
-  static async deleteCompletedOrder(orderId) {
-    const db = getDatabase();
-    const userId = UserInfo.getUserInfo().uid;
-    const orderRef = ref(db, `completed-orders/${userId}/${orderId}`);
-    try {
-      await remove(orderRef);
-    } catch (error) {
-      console.error('Error deleting completed order:', error);
-      throw error;
-    }
-  }
-
-  // Mengambil pesanan berdasarkan produk yang dijual
-  static async getOrdersByProducts(products) {
-    const db = getDatabase();
-    const ordersRef = ref(db, 'orders');
-    try {
-      const ordersSnapshot = await get(ordersRef);
-      if (!ordersSnapshot.exists()) {
-        return [];
-      }
-      const ordersData = ordersSnapshot.val();
-      const allOrders = [];
-
-      // Iterasi untuk semua pesanan dari setiap pengguna
-      Object.values(ordersData).forEach(userOrders => {
-        Object.values(userOrders).forEach(order => {
-          // Cek apakah pesanan berisi produk yang dicari
-          const matchingProducts = order.items.filter(item => products.some(product => product.id === item.id));
-          if (matchingProducts.length > 0) {
-            allOrders.push(order);
-          }
-        });
-      });
-
-      return allOrders;
-    } catch (error) {
-      console.error('Error fetching orders by products:', error);
-      throw error;
-    }
-  }
-
   // Mengupload file PDF ke Firebase Storage
   static async uploadPDF(pdfBlob) {
-    const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
     const storage = getStorage();
-    const storageRef = ref(storage, `pdfs/orders/${userId}/${Date.now()}.pdf`);
+    const pdfStorageRef = storageRef(storage, `pdfs/orders/${userId}/${Date.now()}.pdf`);
 
     try {
-      await uploadBytes(storageRef, pdfBlob);
-      const downloadURL = await getDownloadURL(storageRef);
+      await uploadBytes(pdfStorageRef, pdfBlob);
+      const downloadURL = await getDownloadURL(pdfStorageRef);
       return downloadURL;
     } catch (error) {
       console.error('Error uploading PDF:', error);
       throw error;
     }
+  }
+
+  // Menghasilkan PDF dari data pesanan (anda perlu mengimplementasikan fungsi ini)
+  static async generateOrderPDF(orderData) {
+    // Implementasikan pembuatan PDF di sini, mungkin menggunakan library seperti jsPDF
+    throw new Error('generateOrderPDF function not implemented.');
   }
 
   // Mengambil nomor WhatsApp seller berdasarkan ID produk
@@ -216,6 +117,23 @@ class OrderData {
       return sellerNumber;
     } catch (error) {
       console.error('Error fetching seller number:', error);
+      throw error;
+    }
+  }
+
+  // Mengirimkan link PDF ke WhatsApp seller
+  static async sendPDFLinkToSeller(sellerNumber, pdfURL) {
+    // Gantilah dengan endpoint API WhatsApp yang sesuai
+    const apiUrl = 'https://api.whatsapp.com/send?phone=';
+    const message = `Pesanan Anda telah selesai diproses. Anda dapat mengunduh PDF dari pesanan melalui tautan berikut: ${pdfURL}`;
+
+    try {
+      await axios.post(`${apiUrl}${sellerNumber}`, {
+        body: message
+      });
+      console.log('Link PDF berhasil dikirim ke WhatsApp seller.');
+    } catch (error) {
+      console.error('Error sending PDF link to WhatsApp:', error);
       throw error;
     }
   }
