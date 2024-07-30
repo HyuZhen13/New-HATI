@@ -93,6 +93,8 @@ const OrderPage = {
             <h3>Pesanan ID: ${order.id}</h3>
             <img src="${order.paymentProof}" alt="Bukti Pembayaran">
             <div class="completed-order-items"></div>
+            <button data-order-id="${order.id}" class="delete-order-button">Hapus Pesanan</button>
+            <button data-order-id="${order.id}" data-seller-number="${order.sellerNumber}" class="contact-seller-button">Hubungi Penjual</button>
           `;
           completedOrdersContainer.appendChild(completedOrder);
 
@@ -112,6 +114,33 @@ const OrderPage = {
               completedOrderItemsContainer.appendChild(orderItem);
             });
           }
+
+          const deleteOrderButton = completedOrder.querySelector('.delete-order-button');
+          deleteOrderButton.addEventListener('click', async () => {
+            try {
+              await OrderData.deleteCompletedOrder(deleteOrderButton.dataset.orderId);
+              alert('Pesanan berhasil dihapus!');
+              console.log('Order deleted successfully');
+              await this.renderCompletedOrders(); // Render ulang daftar pesanan selesai
+            } catch (error) {
+              console.error('Error deleting order:', error);
+              alert('Terjadi kesalahan saat menghapus pesanan.');
+            }
+          });
+
+          const contactSellerButton = completedOrder.querySelector('.contact-seller-button');
+          contactSellerButton.addEventListener('click', async () => {
+            try {
+              const orderData = await OrderData.getCompletedOrderDetails(contactSellerButton.dataset.orderId);
+              const pdfUrl = await OrderData.createOrderPdf(orderData);
+              const sellerNumber = contactSellerButton.dataset.sellerNumber;
+              const whatsappUrl = `https://wa.me/${sellerNumber}?text=${encodeURIComponent(`Berikut adalah PDF pesanan Anda: ${pdfUrl}`)}`;
+              window.open(whatsappUrl, '_blank');
+            } catch (error) {
+              console.error('Error contacting seller:', error);
+              alert('Terjadi kesalahan saat menghubungi penjual.');
+            }
+          });
         });
       } else {
         completedOrdersContainer.innerHTML = '<p>Tidak ada pesanan yang selesai.</p>';
