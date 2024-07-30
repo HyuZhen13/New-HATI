@@ -2,11 +2,13 @@ import jsPDF from 'jspdf';
 import UserInfo from '../utils/user-info';
 import OrderData from '../utils/order-data';
 
-// Fungsi untuk mengirim PDF ke WhatsApp
+// Fungsi untuk mengirim PDF ke WhatsApp menggunakan URL
 async function sendPDFToWhatsApp(pdfUrl, sellerNumber) {
   // Implementasikan logika untuk mengirim PDF ke WhatsApp menggunakan URL
   // Misalnya, jika Anda menggunakan API layanan pihak ketiga, tambahkan logika ini di sini
   console.log(`Mengirim PDF ke WhatsApp: ${pdfUrl}, ke nomor: ${sellerNumber}`);
+  // Sebagai contoh, jika menggunakan API pihak ketiga:
+  // await fetch(`https://api.whatsapp.com/send?phone=${sellerNumber}&text=${encodeURIComponent(pdfUrl)}`);
 }
 
 const OrderPage = {
