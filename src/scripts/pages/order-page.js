@@ -7,7 +7,11 @@ const OrderPage = {
   async render() {
     return `
       <div class="order-page">
-	@@ -14,21 +15,18 @@ const OrderPage = {
+        <h1>Detail Pesanan</h1>
+        <div id="order-details" class="order-details"></div>
+        <h1>Pesanan Selesai</h1>
+        <div id="completed-orders" class="completed-orders"></div>
+      </div>
     `;
   },
 
@@ -77,23 +81,7 @@ const OrderPage = {
                   await OrderData.completeOrder();
                   location.reload();
                 } catch (error) {
-                  console.error('Gagal menyimpan rating dan komentar:', error);
-                  alert('Gagal menyimpan rating dan komentar: ' + error.message);
-                }
-              } else {
-                alert('Silakan isi rating dan komentar.');
-              }
-            });
-          });
-        } else {
-          orderItemsContainer.innerHTML = '<p>Tidak ada barang dalam pesanan ini.</p>';
-        }
-      } else {
-        orderDetailsContainer.innerHTML = '<p>Tidak ada pesanan yang sedang diproses.</p>';
-      }
-    } catch (error) {
-      console.error('Error fetching current order:', error);
-      orderDetailsContainer.innerHTML = '<p>Gagal memuat detail pesanan.</p>';
+	@@ -85,7 +104,6 @@ const OrderPage = {
     }
   },
 
