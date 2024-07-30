@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable object-shorthand */
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
+import { jsPDF } from 'jspdf';
 import UserInfo from './user-info';
 
 class OrderData {
@@ -148,6 +149,58 @@ class OrderData {
       console.error('Error deleting completed order:', error);
       throw error;
     }
+  }
+
+  // Membuat PDF dari data pesanan
+  static async createOrderPdf(orderData) {
+    if (!orderData) {
+      throw new Error('Data pesanan tidak ditemukan.');
+    }
+
+    const doc = new jsPDF();
+    doc.text(`Pesanan ID: ${orderData.id}`, 10, 10);
+    doc.text(`Tanggal: ${orderData.timestamp}`, 10, 20);
+
+    orderData.items.forEach((item, index) => {
+      doc.text(`Item ${index + 1}: ${item.name}`, 10, 30 + index * 10);
+      doc.text(`Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}`, 10, 40 + index * 10);
+      doc.text(`Jumlah: ${item.quantity}`, 10, 50 + index * 10);
+      doc.text(`Rating: ${item.rating || 'Belum ada rating'}`, 10, 60 + index * 10);
+      doc.text(`Komentar: ${item.comment || 'Belum ada komentar'}`, 10, 70 + index * 10);
+    });
+
+    const pdfUrl = URL.createObjectURL(doc.output('blob'));
+    return pdfUrl;
+  }
+
+  // Mengirim PDF pesanan ke penjual melalui WhatsApp
+  static async sendOrderPdfToSeller(orderId) {
+    try {
+      const orderData = await this.getCompletedOrderDetails(orderId);
+      if (!orderData) {
+        throw new Error('Data pesanan tidak ditemukan.');
+      }
+
+      const pdfUrl = await this.createOrderPdf(orderData);
+      const sellerPhoneNumber = '+628123456789'; // Nomor WhatsApp penjual
+      const message = `Pesanan ID: ${orderId} telah selesai. Silakan lihat detail pesanan di PDF berikut: ${pdfUrl}`;
+      const encodedMessage = encodeURIComponent(message);
+
+      // Mengirim pesan ke WhatsApp
+      window.open(`https://wa.me/${sellerPhoneNumber}?text=${encodedMessage}`, '_blank');
+    } catch (error) {
+      console.error('Error sending order PDF to seller:', error);
+      throw error;
+    }
+  }
+
+  // Mengambil detail pesanan selesai
+  static async getCompletedOrderDetails(orderId) {
+    const db = getDatabase();
+    const userId = UserInfo.getUserInfo().uid;
+    const completedOrderRef = ref(db, `completed-orders/${userId}/${orderId}`);
+    const orderSnapshot = await get(completedOrderRef);
+    return orderSnapshot.exists() ? orderSnapshot.val() : null;
   }
 
   // Mengambil pesanan berdasarkan produk yang dijual
