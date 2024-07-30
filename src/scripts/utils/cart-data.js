@@ -1,50 +1,109 @@
 /* eslint-disable consistent-return */
 /* eslint-disable object-shorthand */
 import {
-  getDatabase, ref, set, update, get,
+  getDatabase, ref, set, update, get
 } from 'firebase/database';
 import {
-  getStorage, uploadBytes, ref as storageRef, getDownloadURL,
+  getStorage, uploadBytes, ref as storageRef, getDownloadURL
 } from 'firebase/storage';
 import UserInfo from './user-info';
 
 class CartData {
-  static getCartItems() {
-    return JSON.parse(localStorage.getItem('cart')) || [];
+  static getUserCartRef() {
+    const userId = UserInfo.getUserInfo().uid;
+    const db = getDatabase();
+    return ref(db, `carts/${userId}`);
   }
 
-  static addCartItem(item) {
-    const cart = this.getCartItems();
-    cart.push(item);
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }
-
-  static removeCartItem(id) {
-    let cart = this.getCartItems();
-    cart = cart.filter(item => item.id !== id);
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }
-
-  static updateCartItem(id, quantity) {
-    const cart = this.getCartItems();
-    const item = cart.find(i => i.id === id);
-    if (item) {
-      item.quantity = quantity;
-      localStorage.setItem('cart', JSON.stringify(cart));
+  static async getCartItems() {
+    const cartRef = this.getUserCartRef();
+    try {
+      const cartSnapshot = await get(cartRef);
+      if (!cartSnapshot.exists()) {
+        return [];
+      }
+      return cartSnapshot.val().items || [];
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+      throw error;
     }
   }
 
-  static setPaymentProof(url) {
-    localStorage.setItem('paymentProof', url);
+  static async addCartItem(item) {
+    const cartRef = this.getUserCartRef();
+    const cartItems = await this.getCartItems();
+    cartItems.push(item);
+    try {
+      await set(cartRef, { items: cartItems });
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+      throw error;
+    }
   }
 
-  static getPaymentProof() {
-    return localStorage.getItem('paymentProof');
+  static async removeCartItem(id) {
+    const cartRef = this.getUserCartRef();
+    const cartItems = await this.getCartItems();
+    const updatedCartItems = cartItems.filter(item => item.id !== id);
+    try {
+      await set(cartRef, { items: updatedCartItems });
+    } catch (error) {
+      console.error('Error removing item from cart:', error);
+      throw error;
+    }
   }
 
-  static clearCart() {
-    localStorage.removeItem('cart');
-    localStorage.removeItem('paymentProof');
+  static async updateCartItem(id, quantity) {
+    const cartRef = this.getUserCartRef();
+    const cartItems = await this.getCartItems();
+    const item = cartItems.find(i => i.id === id);
+    if (item) {
+      item.quantity = quantity;
+      try {
+        await set(cartRef, { items: cartItems });
+      } catch (error) {
+        console.error('Error updating cart item:', error);
+        throw error;
+      }
+    }
+  }
+
+  static async setPaymentProof(url) {
+    const userId = UserInfo.getUserInfo().uid;
+    const db = getDatabase();
+    const paymentProofRef = ref(db, `payment-proof/${userId}`);
+    try {
+      await set(paymentProofRef, { url });
+    } catch (error) {
+      console.error('Error setting payment proof:', error);
+      throw error;
+    }
+  }
+
+  static async getPaymentProof() {
+    const userId = UserInfo.getUserInfo().uid;
+    const db = getDatabase();
+    const paymentProofRef = ref(db, `payment-proof/${userId}`);
+    try {
+      const paymentProofSnapshot = await get(paymentProofRef);
+      if (!paymentProofSnapshot.exists()) {
+        return null;
+      }
+      return paymentProofSnapshot.val().url;
+    } catch (error) {
+      console.error('Error fetching payment proof:', error);
+      throw error;
+    }
+  }
+
+  static async clearCart() {
+    const cartRef = this.getUserCartRef();
+    try {
+      await set(cartRef, { items: [] });
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      throw error;
+    }
   }
 
   static async uploadPaymentProof(file) {
@@ -54,7 +113,7 @@ class CartData {
     try {
       const uploadTask = await uploadBytes(storageReference, file);
       const url = await getDownloadURL(uploadTask.ref);
-      this.setPaymentProof(url);
+      await this.setPaymentProof(url);
       return url; // Kembalikan URL untuk digunakan lebih lanjut jika diperlukan
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -65,10 +124,10 @@ class CartData {
   static async moveToOrderPage() {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
-    const orderId = Date.now();
+    const orderId = Date.now(); // Gunakan timestamp sebagai ID pesanan
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
-    const cartItems = this.getCartItems();
-    const paymentProof = this.getPaymentProof();
+    const cartItems = await this.getCartItems();
+    const paymentProof = await this.getPaymentProof();
 
     if (!cartItems.length) {
       throw new Error('Keranjang belanja kosong.');
@@ -102,7 +161,7 @@ class CartData {
       }
 
       // Menghapus keranjang setelah pesanan dipindahkan
-      this.clearCart();
+      await this.clearCart();
     } catch (e) {
       console.log(e.message);
       throw e; // Rethrow error to be handled by the calling function
