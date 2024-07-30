@@ -2,6 +2,7 @@
 /* eslint-disable object-shorthand */
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
 import UserInfo from './user-info';
+
 class OrderData {
   // Mengambil pesanan terkini pengguna
   static async getCurrentOrder() {
@@ -28,6 +29,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Menyelesaikan pesanan terkini pengguna
   static async completeOrder() {
     const db = getDatabase();
@@ -62,6 +64,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Menyimpan umpan balik produk
   static async saveProductFeedback(orderId, productId, rating, comment) {
     const db = getDatabase();
@@ -96,6 +99,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Mengambil umpan balik produk
   static async getProductFeedback(productId) {
     const db = getDatabase();
@@ -117,6 +121,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Mengambil pesanan yang telah selesai
   static async getCompletedOrders(userId) {
     const db = getDatabase();
@@ -132,6 +137,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Menghapus pesanan yang telah selesai
   static async deleteCompletedOrder(orderId) {
     const db = getDatabase();
@@ -144,5 +150,34 @@ class OrderData {
       throw error;
     }
   }
+
+  // Mengambil pesanan berdasarkan produk yang dijual
+  static async getOrdersByProducts(products) {
+    const db = getDatabase();
+    const ordersRef = ref(db, 'orders');
+    try {
+      const ordersSnapshot = await get(ordersRef);
+      if (!ordersSnapshot.exists()) {
+        return [];
+      }
+      const ordersData = ordersSnapshot.val();
+      const allOrders = [];
+
+      Object.values(ordersData).forEach(userOrders => {
+        Object.values(userOrders).forEach(order => {
+          const matchingProducts = order.items.filter(item => products.find(product => product.id === item.id));
+          if (matchingProducts.length > 0) {
+            allOrders.push(order);
+          }
+        });
+      });
+
+      return allOrders;
+    } catch (error) {
+      console.error('Error fetching orders by products:', error);
+      throw error;
+    }
+  }
 }
+
 export default OrderData;
