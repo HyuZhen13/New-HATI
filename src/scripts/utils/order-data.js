@@ -155,13 +155,13 @@ class OrderData {
       const ordersData = ordersSnapshot.val();
       const allOrders = [];
 
+      // Iterasi untuk semua pesanan dari setiap pengguna
       Object.values(ordersData).forEach(userOrders => {
         Object.values(userOrders).forEach(order => {
-          if (products) {
-            const matchingProducts = order.items.filter(item => products.find(product => product.id === item.id));
-            if (matchingProducts.length > 0) {
-              allOrders.push(order);
-            }
+          // Cek apakah pesanan berisi produk yang dicari
+          const matchingProducts = order.items.filter(item => products.some(product => product.id === item.id));
+          if (matchingProducts.length > 0) {
+            allOrders.push(order);
           }
         });
       });
