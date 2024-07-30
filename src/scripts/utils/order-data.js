@@ -165,9 +165,11 @@ class OrderData {
 
       Object.values(ordersData).forEach(userOrders => {
         Object.values(userOrders).forEach(order => {
-          const matchingProducts = order.items.filter(item => products.find(product => product.id === item.id));
-          if (matchingProducts.length > 0) {
-            allOrders.push(order);
+          if (products) {
+            const matchingProducts = order.items.filter(item => products.find(product => product.id === item.id));
+            if (matchingProducts.length > 0) {
+              allOrders.push(order);
+            }
           }
         });
       });
