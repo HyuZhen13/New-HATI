@@ -222,8 +222,8 @@ const ProfilePage = {
             userProducts.push(item);
             const productItem = document.createElement('div');
             productItem.innerHTML = `
-              <div class="card">
-                <img src="${item.image}" class="card-img-top" alt="${item.name}">
+              <div class="product-item">
+                <img src="${item.image}" alt="${item.name}">
                 <div class="card-body">
                   <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
                   <h5 class="card-title">${item.name}</h5>
@@ -233,7 +233,6 @@ const ProfilePage = {
                 </div>
               </div>
             `;
-            productItem.setAttribute('class', 'product-item');
             productItem.addEventListener('click', (event) => {
               event.preventDefault();
               location.href = `#/edit-product/${item.id}`;
@@ -243,46 +242,46 @@ const ProfilePage = {
         });
 
         if (userProducts.length === 0) {
-          productUserList.innerHTML = 'No products';
+          productUserList.innerHTML = 'No products available.';
         }
       }
     } catch (error) {
-      console.log('Error fetching products:', error.message);
+      console.log('Error getting products:', error.message);
     }
 
-    // Get user's sold products
+    // Get sold orders
     try {
       const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
-      if (orders) {
-        console.log('Order data:', orders);
-        orders.reverse().forEach((order) => {
-          order.items.forEach((item) => {
-            if (userProducts.some(product => product.id === item.id)) {
-              const orderItem = document.createElement('div');
-              orderItem.innerHTML = `
-                <div class="order-item">
-                  <img src="${item.image}" class="order-img" alt="${item.name}">
-                  <div class="order-body">
-                    <h5 class="order-title">${item.name}</h5>
-                    <p class="order-price">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                    <div class="feedback">
-                      <p><strong>${order.buyerName}</strong></p>
-                      <p>Rating: ${item.rating || 'N/A'}</p>
-                      <p>${item.comment || 'No comments'}</p>
-                    </div>
+      console.log('Orders data:', orders);
+      orders.reverse().forEach((order) => {
+        const orderItem = document.createElement('div');
+        orderItem.innerHTML = `
+          <div class="order-item">
+            <div class="order-body">
+              <h5>Order ID: ${order.id}</h5>
+              <p>Date: ${new Date(order.timestamp).toLocaleString()}</p>
+              <p>Status: ${order.status}</p>
+              <div class="feedback">
+                <h6>Feedback</h6>
+                ${order.items.map(item => `
+                  <div>
+                    <p>Product: ${item.name}</p>
+                    <p>Rating: ${item.rating}</p>
+                    <p>Comment: ${item.comment}</p>
                   </div>
-                  <div class="order-footer">
-                    <small class="text-muted">Ordered on ${new Date(order.timestamp).toLocaleDateString()}</small>
-                  </div>
-                </div>
-              `;
-              orderList.appendChild(orderItem);
-            }
-          });
-        });
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+        orderList.appendChild(orderItem);
+      });
+
+      if (orders.length === 0) {
+        orderList.innerHTML = 'No orders found.';
       }
     } catch (error) {
-      console.log('Error fetching orders:', error.message);
+      console.log('Error getting orders:', error.message);
     }
   },
 };
