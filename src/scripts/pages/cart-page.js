@@ -1,6 +1,5 @@
 import CartData from '../utils/cart-data';
 import UserInfo from '../utils/user-info';
-
 const CartPage = {
   async render() {
     return `
@@ -13,7 +12,6 @@ const CartPage = {
       </div>
     `;
   },
-
   async afterRender() {
     const userId = UserInfo.getUserInfo().uid;
     const cartItems = await CartData.getCartItems(userId);
@@ -22,7 +20,6 @@ const CartPage = {
     const checkoutButton = document.querySelector('#checkout');
     const paymentProofInput = document.querySelector('#payment-proof');
     let totalPrice = 0;
-
     cartItems.forEach(item => {
       const cartItem = document.createElement('div');
       cartItem.classList.add('cart-item');
@@ -37,7 +34,6 @@ const CartPage = {
       `;
       cartItemsContainer.appendChild(cartItem);
       totalPrice += item.price * item.quantity;
-
       const quantityInput = cartItem.querySelector('.quantity-input');
       quantityInput.addEventListener('change', async (e) => {
         const quantity = parseInt(e.target.value);
