@@ -1,22 +1,20 @@
 /* eslint-disable consistent-return */
 /* eslint-disable object-shorthand */
 import {
-  getDatabase, ref, set, update, get,
+  getDatabase, ref, set, update, get
 } from 'firebase/database';
 import {
-  getStorage, uploadBytes, ref as storageRef, getDownloadURL,
+  getStorage, uploadBytes, ref as storageRef, getDownloadURL
 } from 'firebase/storage';
 import UserInfo from './user-info';
 
 class CartData {
-  // Mendapatkan referensi keranjang user di database
   static getUserCartRef() {
     const userId = UserInfo.getUserInfo().uid;
     const db = getDatabase();
     return ref(db, `carts/${userId}`);
   }
 
-  // Mendapatkan item-item dalam keranjang user dari database
   static async getCartItems() {
     const cartRef = this.getUserCartRef();
     try {
@@ -31,7 +29,6 @@ class CartData {
     }
   }
 
-  // Menambahkan item ke dalam keranjang
   static async addCartItem(item) {
     const cartRef = this.getUserCartRef();
     const cartItems = await this.getCartItems();
@@ -44,8 +41,7 @@ class CartData {
     }
   }
 
-  // Menghapus item dari keranjang
-  static async removeCartItem(id) {
+  static async removeCartItem(userId, id) {
     const cartRef = this.getUserCartRef();
     const cartItems = await this.getCartItems();
     const updatedCartItems = cartItems.filter(item => item.id !== id);
@@ -57,8 +53,7 @@ class CartData {
     }
   }
 
-  // Memperbarui jumlah item dalam keranjang
-  static async updateCartItem(id, quantity) {
+  static async updateCartItem(userId, id, quantity) {
     const cartRef = this.getUserCartRef();
     const cartItems = await this.getCartItems();
     const item = cartItems.find(i => i.id === id);
@@ -73,7 +68,6 @@ class CartData {
     }
   }
 
-  // Menyimpan URL bukti pembayaran
   static async setPaymentProof(url) {
     const userId = UserInfo.getUserInfo().uid;
     const db = getDatabase();
@@ -86,7 +80,6 @@ class CartData {
     }
   }
 
-  // Mendapatkan URL bukti pembayaran
   static async getPaymentProof() {
     const userId = UserInfo.getUserInfo().uid;
     const db = getDatabase();
@@ -103,7 +96,6 @@ class CartData {
     }
   }
 
-  // Menghapus semua item dalam keranjang
   static async clearCart() {
     const cartRef = this.getUserCartRef();
     try {
@@ -114,7 +106,6 @@ class CartData {
     }
   }
 
-  // Mengunggah bukti pembayaran
   static async uploadPaymentProof(file) {
     const userId = UserInfo.getUserInfo().uid;
     const storage = getStorage();
@@ -130,7 +121,6 @@ class CartData {
     }
   }
 
-  // Memindahkan item dari keranjang ke halaman pesanan
   static async moveToOrderPage() {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
@@ -138,11 +128,9 @@ class CartData {
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const cartItems = await this.getCartItems();
     const paymentProof = await this.getPaymentProof();
-
     if (!cartItems.length) {
       throw new Error('Keranjang belanja kosong.');
     }
-
     try {
       // Menyimpan pesanan
       await set(orderRef, {
@@ -151,25 +139,20 @@ class CartData {
         paymentProof: paymentProof,
         timestamp: new Date().toISOString(),
       });
-
       // Memperbarui stok untuk setiap produk
       for (const order of cartItems) {
         const productRef = ref(db, `products/${order.id}`);
         const productSnapshot = await get(productRef);
         const productData = productSnapshot.val();
-
         if (!productData) {
           throw new Error(`Produk dengan ID ${order.id} tidak ditemukan.`);
         }
-
         const newStock = productData.stock - order.quantity;
         if (newStock < 0) {
           throw new Error(`Stok produk ${order.name} tidak mencukupi.`);
         }
-
         await update(productRef, { stock: newStock });
       }
-
       // Menghapus keranjang setelah pesanan dipindahkan
       await this.clearCart();
     } catch (e) {
@@ -178,7 +161,6 @@ class CartData {
     }
   }
 
-  // Mendapatkan semua pesanan user dari database
   static async getOrders(userId) {
     const db = getDatabase();
     const ordersRef = ref(db, `orders/${userId}`);
@@ -196,5 +178,4 @@ class CartData {
     }
   }
 }
-
 export default CartData;
