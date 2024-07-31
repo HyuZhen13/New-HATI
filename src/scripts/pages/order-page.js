@@ -1,6 +1,5 @@
-/* import UserInfo from '../utils/user-info';
+import UserInfo from '../utils/user-info';
 import OrderData from '../utils/order-data';
-
 const OrderPage = {
   async render() {
     return `
@@ -12,16 +11,13 @@ const OrderPage = {
       </div>
     `;
   },
-
   async afterRender() {
     await this.renderCurrentOrder();
     await this.renderCompletedOrders();
   },
-
   async renderCurrentOrder() {
     const orderDetailsContainer = document.querySelector('#order-details');
     const userId = UserInfo.getUserInfo().uid;
-
     try {
       const order = await OrderData.getCurrentOrder(userId);
       if (order) {
@@ -30,7 +26,6 @@ const OrderPage = {
           <img src="${order.paymentProof}" alt="Bukti Pembayaran">
           <div id="order-items"></div>
         `;
-
         const orderItemsContainer = document.querySelector('#order-items');
         if (Array.isArray(order.items)) {
           order.items.forEach(item => {
@@ -47,7 +42,6 @@ const OrderPage = {
               <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
             `;
             orderItemsContainer.appendChild(orderItem);
-
             const saveFeedbackButton = orderItem.querySelector('.save-feedback-button');
             saveFeedbackButton.addEventListener('click', async () => {
               const comment = orderItem.querySelector('.comment-input').value;
@@ -59,9 +53,10 @@ const OrderPage = {
               try {
                 await OrderData.saveProductFeedback(saveFeedbackButton.dataset.orderId, saveFeedbackButton.dataset.id, rating, comment);
                 alert('Feedback berhasil disimpan!');
-                await OrderData.moveOrderToCompleted(saveFeedbackButton.dataset.orderId);
-                await this.renderCurrentOrder();
-                await this.renderCompletedOrders();
+                console.log('Feedback saved successfully');
+                await OrderData.moveOrderToCompleted(saveFeedbackButton.dataset.orderId); // Pindahkan pesanan ke daftar selesai
+                await this.renderCurrentOrder(); // Render ulang daftar pesanan saat ini
+                await this.renderCompletedOrders(); // Render ulang daftar pesanan selesai
               } catch (error) {
                 console.error('Error saving feedback:', error);
                 alert('Terjadi kesalahan saat menyimpan feedback.');
@@ -77,11 +72,9 @@ const OrderPage = {
       orderDetailsContainer.innerHTML = '<p>Terjadi kesalahan saat memuat pesanan.</p>';
     }
   },
-
   async renderCompletedOrders() {
     const completedOrdersContainer = document.querySelector('#completed-orders');
     const userId = UserInfo.getUserInfo().uid;
-
     try {
       const completedOrders = await OrderData.getCompletedOrders(userId);
       if (completedOrders.length > 0) {
@@ -97,7 +90,6 @@ const OrderPage = {
             <button data-order-id="${order.id}" data-seller-number="${order.sellerNumber}" class="contact-seller-button">Hubungi Penjual</button>
           `;
           completedOrdersContainer.appendChild(completedOrder);
-
           const completedOrderItemsContainer = completedOrder.querySelector('.completed-order-items');
           if (Array.isArray(order.items)) {
             order.items.forEach(item => {
@@ -114,19 +106,18 @@ const OrderPage = {
               completedOrderItemsContainer.appendChild(orderItem);
             });
           }
-
           const deleteOrderButton = completedOrder.querySelector('.delete-order-button');
           deleteOrderButton.addEventListener('click', async () => {
             try {
               await OrderData.deleteCompletedOrder(deleteOrderButton.dataset.orderId);
               alert('Pesanan berhasil dihapus!');
-              await this.renderCompletedOrders();
+              console.log('Order deleted successfully');
+              await this.renderCompletedOrders(); // Render ulang daftar pesanan selesai
             } catch (error) {
               console.error('Error deleting order:', error);
               alert('Terjadi kesalahan saat menghapus pesanan.');
             }
           });
-
           const contactSellerButton = completedOrder.querySelector('.contact-seller-button');
           contactSellerButton.addEventListener('click', async () => {
             try {
@@ -150,6 +141,4 @@ const OrderPage = {
     }
   }
 };
-
 export default OrderPage;
-*/
