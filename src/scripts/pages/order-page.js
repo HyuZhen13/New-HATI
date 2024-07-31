@@ -59,10 +59,9 @@ const OrderPage = {
               try {
                 await OrderData.saveProductFeedback(saveFeedbackButton.dataset.orderId, saveFeedbackButton.dataset.id, rating, comment);
                 alert('Feedback berhasil disimpan!');
-                console.log('Feedback saved successfully');
-                await OrderData.moveOrderToCompleted(saveFeedbackButton.dataset.orderId); // Pindahkan pesanan ke daftar selesai
-                await this.renderCurrentOrder(); // Render ulang daftar pesanan saat ini
-                await this.renderCompletedOrders(); // Render ulang daftar pesanan selesai
+                await OrderData.moveOrderToCompleted(saveFeedbackButton.dataset.orderId);
+                await this.renderCurrentOrder();
+                await this.renderCompletedOrders();
               } catch (error) {
                 console.error('Error saving feedback:', error);
                 alert('Terjadi kesalahan saat menyimpan feedback.');
@@ -121,8 +120,7 @@ const OrderPage = {
             try {
               await OrderData.deleteCompletedOrder(deleteOrderButton.dataset.orderId);
               alert('Pesanan berhasil dihapus!');
-              console.log('Order deleted successfully');
-              await this.renderCompletedOrders(); // Render ulang daftar pesanan selesai
+              await this.renderCompletedOrders();
             } catch (error) {
               console.error('Error deleting order:', error);
               alert('Terjadi kesalahan saat menghapus pesanan.');
