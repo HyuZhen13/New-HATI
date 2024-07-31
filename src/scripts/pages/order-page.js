@@ -1,4 +1,4 @@
-import UserInfo from '../utils/user-info';
+/* import UserInfo from '../utils/user-info';
 import OrderData from '../utils/order-data';
 
 const OrderPage = {
@@ -152,3 +152,4 @@ const OrderPage = {
 };
 
 export default OrderPage;
+*/
