@@ -1,4 +1,4 @@
-import CartData from '../utils/cart-data';
+/*import CartData from '../utils/cart-data';
 import UserInfo from '../utils/user-info';
 const CartPage = {
   async render() {
@@ -82,3 +82,4 @@ const CartPage = {
 };
 
 export default CartPage;
+*/
