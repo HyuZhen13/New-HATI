@@ -4,6 +4,10 @@
   font-weight: bold;
 }
 
+.logo {
+  width: 175px; /* 
+  height: auto;
+}
 .view-news-button {
   background-color: #007bff; /* Bootstrap primary color */
   color: white;
