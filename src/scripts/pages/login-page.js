@@ -1,4 +1,4 @@
-import { GoogleAuthProvider, getAuth } from 'firebase/auth';
+import { GoogleAuthProvider, getAuth, onAuthStateChanged } from 'firebase/auth';
 import Auth from '../utils/auth';
 
 const LoginPage = {
@@ -51,6 +51,12 @@ const LoginPage = {
       const password = document.forms.loginForm.passwordLogin.value;
 
       Auth.emailLogin(auth, email, password);
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = '#/home'; // Mengarahkan ke halaman home setelah login
+      }
     });
   },
 };
