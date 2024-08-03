@@ -4,13 +4,15 @@ import '../../styles/landing-page.css';
 const LandingPage = {
   async render() {
     return `
-      <div class="welcome-message">Selamat datang di Sistem Informasi Pertanian Kelompok Tani Sri Rahayu 3</div>
-      <section class="auth-section"> 
-        <div class="auth-container">
-          <button id="loginSystem" class="login-system-button">Login ke Sistem</button>
-        </div>
-      </section>
-      <button id="viewNews" class="view-news-button">Saya hanya ingin melihat berita</button>
+      <div class="container text-center mt-5">
+        <div class="welcome-message mb-4">Selamat datang di Sistem Informasi Pertanian Kelompok Tani Sri Rahayu 3</div>
+        <section class="auth-section mb-4"> 
+          <div class="auth-container p-4">
+            <button id="loginSystem" class="btn btn-primary btn-lg btn-block">Login ke Sistem</button>
+          </div>
+        </section>
+        <button id="viewNews" class="btn btn-secondary btn-lg">Saya hanya ingin melihat berita</button>
+      </div>
     `;
   },
 
