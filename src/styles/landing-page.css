@@ -1,38 +1,38 @@
 body {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   min-height: 100vh;
   margin: 0;
-} 
+}
+
+.logo {
+  width: 100px; /* Atur ukuran logo sesuai kebutuhan */
+  height: auto;
+}
+
 .welcome-message {
   font-size: 24px;
   font-weight: bold;
-  margin-top: 20px;
-  text-align: center;
-}
-
-.view-news-button {
-  font-size: 16px;
-  background-color: #333; /* Warna tombol lebih gelap */
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  margin-bottom: 20px;
-  cursor: pointer;
-  border-radius: 5px;
-  text-align: center;
-}
-
-.view-news-button:hover {
-  background-color: #555; /* Warna lebih gelap saat tombol di-hover */
 }
 
 .auth-container {
   background-color: white;
-  padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   text-align: center;
+  margin: 20px; /* Add margin for spacing */
+}
+
+.view-news-button {
+  background-color: #007bff; /* Bootstrap primary color */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.view-news-button:hover {
+  background-color: #0056b3; /* Darker shade of Bootstrap primary color */
 }
