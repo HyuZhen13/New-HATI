@@ -1,5 +1,4 @@
 import { getAuth } from 'firebase/auth';
-import './landing-page.css'; // Pastikan Anda menyesuaikan path sesuai dengan struktur proyek Anda
 
 const LandingPage = {
   async render() {
