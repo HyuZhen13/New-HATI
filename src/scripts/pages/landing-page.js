@@ -5,6 +5,7 @@ const LandingPage = {
   async render() {
     return `
       <div class="container text-center mt-5">
+        <img src="./favicon.png" alt="Logo" class="logo mb-4" />
         <div class="welcome-message mb-4">Selamat datang di Sistem Informasi Pertanian Kelompok Tani Sri Rahayu 3</div>
         <section class="auth-section mb-4"> 
           <div class="auth-container p-4">
