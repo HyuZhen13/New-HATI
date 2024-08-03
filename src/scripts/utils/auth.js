@@ -66,7 +66,7 @@ class Auth {
     } catch (error) {
       console.log(error.message);
     } finally {
-      location.href = '#/';
+      location.href = '#/home';
       location.reload();
     }
   }
