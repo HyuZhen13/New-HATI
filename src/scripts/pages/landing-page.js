@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import '../styles/landing-page.css';
+import '../../styles/landing-page.css';
 
 const LandingPage = {
   async render() {
