@@ -6,22 +6,9 @@ body {
   margin: 0;
 }
 
-.logo {
-  width: 100px; /* Atur ukuran logo sesuai kebutuhan */
-  height: auto;
-}
-
 .welcome-message {
   font-size: 24px;
   font-weight: bold;
-}
-
-.auth-container {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  margin: 20px; /* Add margin for spacing */
 }
 
 .view-news-button {
