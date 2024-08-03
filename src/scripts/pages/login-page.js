@@ -30,6 +30,12 @@ const LoginPage = {
   async afterRender() {
     const auth = getAuth();
 
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = '#/home'; // Mengarahkan ke halaman home jika sudah login
+      }
+    });
+
     // Sembunyikan nav dan footer
     const nav = document.querySelector('nav');
     const footer = document.querySelector('footer');
@@ -51,12 +57,6 @@ const LoginPage = {
       const password = document.forms.loginForm.passwordLogin.value;
 
       Auth.emailLogin(auth, email, password);
-    });
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = '#/home'; // Mengarahkan ke halaman home setelah login
-      }
     });
   },
 };
