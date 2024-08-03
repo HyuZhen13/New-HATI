@@ -25,6 +25,12 @@ const NewsPage = {
     const searchForm = document.querySelector('#searchForm');
     const notFoundMessage = document.getElementById('not-found-message');
 
+    // Menampilkan nav dan footer kembali
+    const nav = document.querySelector('nav');
+    const footer = document.querySelector('footer');
+    if (nav) nav.style.display = 'block';
+    if (footer) footer.style.display = 'block';
+
     const news = await NewsData.getNews();
 
     function getMonthName(monthIndex) {
@@ -49,7 +55,6 @@ const NewsPage = {
       event.preventDefault();
       newsContainer.innerHTML = '';
       const searchInput = document.forms.searchForm.searchInput.value;
-      // eslint-disable-next-line max-len
       const filteredNews = Object.values(news).filter((newsItem) => newsItem.title.toLowerCase().includes(searchInput.toLowerCase()));
 
       filteredNews.reverse().forEach((newsItem) => {
@@ -71,7 +76,6 @@ const NewsPage = {
         });
       });
 
-      // Toggle visibility of "No news found" message based on filtered news
       if (filteredNews.length === 0) {
         notFoundMessage.style.display = 'block';
       } else {
@@ -98,7 +102,6 @@ const NewsPage = {
       });
     });
 
-    // Hide "No news found" message initially
     notFoundMessage.style.display = 'none';
   },
 };
