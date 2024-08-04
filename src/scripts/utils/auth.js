@@ -33,7 +33,7 @@ class Auth {
 
         UserInfo.setUserInfo(user.email, user.uid, user.displayName);
 
-        location.href = '#/';
+        location.href = '#/home';
         location.reload();
       }).catch((error) => {
         const errorCode = error.code;
