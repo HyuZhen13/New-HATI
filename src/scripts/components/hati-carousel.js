@@ -21,9 +21,6 @@ class hatiCarousel extends HTMLElement {
         <div class="carousel-item">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31665.70233490767!2d109.34238815685402!3d-7.378130662177316!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e655ef01e1cf687%3A0xf5b8e4d02830202e!2s7%C2%B022&#39;41.3%22S%20109%C2%B020&#39;44.6%22E!5e0!3m2!1sen!2sid!4v1691210738485!5m2!1sen!2sid"
-            width="1100px"
-            height="470px"
-            style="border:0;"
             allowfullscreen=""
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade">
