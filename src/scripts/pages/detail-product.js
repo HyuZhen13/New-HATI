@@ -84,7 +84,7 @@ const DetailProductPage = {
     });
 
     storeDetail.innerHTML = `
-      <img src="${store.photo ? store.photo : './images/profile.png'}" alt="${store.name}">
+      <img src="${store.photo ? store.photo : './Images/profile.png'}" alt="${store.name}">
       <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
     `;
     storeDetail.addEventListener('click', (event) => {
