@@ -144,6 +144,40 @@ class ProductData {
       console.log(e.message);
     }
   }
+
+  static async getOrderById(userId, orderId) {
+    const dbRef = ref(getDatabase());
+    try {
+      const orderSnapshot = await get(child(dbRef, `orders/${userId}/${orderId}`));
+      return orderSnapshot.val();
+    } catch (e) {
+      console.log(e.message);
+    }
+  }
+
+  static async getOrdersBySeller(sellerId) {
+    const dbRef = ref(getDatabase());
+    try {
+      const ordersSnapshot = await get(child(dbRef, `orders/`));
+      const orders = ordersSnapshot.val();
+      const sellerOrders = {};
+
+      for (const [userId, userOrders] of Object.entries(orders)) {
+        for (const [orderId, orderData] of Object.entries(userOrders)) {
+          if (orderData.items.some(item => item.uid === sellerId)) {
+            if (!sellerOrders[userId]) {
+              sellerOrders[userId] = {};
+            }
+            sellerOrders[userId][orderId] = orderData;
+          }
+        }
+      }
+
+      return sellerOrders;
+    } catch (e) {
+      console.log(e.message);
+    }
+  }
 }
 
 export default ProductData;
