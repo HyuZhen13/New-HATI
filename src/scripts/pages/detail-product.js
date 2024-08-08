@@ -102,7 +102,7 @@ const DetailProductPage = {
             <h5 class="card-title">${item.name}</h5>
           </div>
           <div class="card-footer">
-            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg'></i>' : ''}</small>
+           <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
           </div>
         </div>
       `;
