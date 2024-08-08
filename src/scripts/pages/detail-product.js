@@ -3,6 +3,7 @@ import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import CartData from '../utils/cart-data';
 import OrderData from '../utils/order-data';
+
 const DetailProductPage = {
   async render() {
     return `
@@ -36,6 +37,7 @@ const DetailProductPage = {
     const storeDetail = document.querySelector('#store-detail');
     const moreProduct = document.querySelector('#more-product');
     const feedbackList = document.querySelector('#feedback-list');
+
     productDetailContainer.innerHTML = `
       <img src="${product.image}">
       <div>
@@ -51,8 +53,10 @@ const DetailProductPage = {
     const buyNow = document.querySelector('#buy-now');
     buyNow.addEventListener('click', (event) => {
       event.preventDefault();
-      window.open(`https://wa.me/${store.phone}`, '_blank');
+      const phone = store.phone.startsWith('0') ? `+62${store.phone.slice(1)}` : store.phone;
+      window.open(`https://wa.me/${phone}`, '_blank');
     });
+
     const addToCart = document.querySelector('#add-to-cart');
     addToCart.addEventListener('click', async (event) => {
       event.preventDefault();
@@ -73,6 +77,7 @@ const DetailProductPage = {
         alert('Produk tidak tersedia dalam stok.');
       }
     });
+
     storeDetail.innerHTML = `
       <img src="${store.photo ? store.photo : './images/profile.png'}">
       <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
@@ -81,6 +86,7 @@ const DetailProductPage = {
       event.preventDefault();
       location.href = `#/store/${product.uid}`;
     });
+
     Object.values(productAll).reverse().forEach((item) => {
       const productItem = document.createElement('div');
       productItem.innerHTML = `
@@ -104,11 +110,13 @@ const DetailProductPage = {
         moreProduct.appendChild(productItem);
       }
     });
+
     if (moreProduct.childElementCount === 0) {
       const productText = document.createElement('h5');
       productText.innerText = 'Toko ini hanya memiliki satu produk.';
       moreProduct.appendChild(productText);
     }
+
     // Menambahkan bagian untuk menampilkan komentar dan rating produk
     try {
       const feedbacks = await OrderData.getProductFeedback(product.id);
@@ -132,4 +140,5 @@ const DetailProductPage = {
     }
   },
 };
+
 export default DetailProductPage;
