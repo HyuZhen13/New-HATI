@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 import {
   get, getDatabase, ref, set, child, update, remove,
 } from 'firebase/database';
@@ -17,7 +16,7 @@ class ProductData {
     try {
       await uploadBytes(storageReference, image);
       const url = await getDownloadURL(storageReference);
-      
+
       await set(ref(db, `products/${id}-${product.uid}`), {
         id: `${id}-${product.uid}`,
         uid: product.uid,
@@ -77,7 +76,7 @@ class ProductData {
       if (image) {
         await uploadBytes(storageReference, image);
         const url = await getDownloadURL(storageReference);
-        
+
         await update(ref(db, `products/${product.id}`), {
           name: product.name,
           price: product.price,
@@ -103,7 +102,7 @@ class ProductData {
     }
   }
 
-  static async moveToOrderPage(orderItems, paymentProof) {
+  static async moveToOrderPage(orderItems) {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
     const orderId = Date.now();
@@ -113,8 +112,9 @@ class ProductData {
       await set(orderRef, {
         id: orderId,
         items: orderItems,
-        paymentProof,
+        paymentProof: null, // Initially null, will be updated after payment
         timestamp: new Date().toISOString(),
+        status: 'unpaid', // Track payment status
       });
 
       // Update stock for each product
