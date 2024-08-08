@@ -37,6 +37,7 @@ const DetailProductPage = {
     const storeDetail = document.querySelector('#store-detail');
     const moreProduct = document.querySelector('#more-product');
     const feedbackList = document.querySelector('#feedback-list');
+    const user = UserData.getUserInfo(); // Mendapatkan informasi pengguna saat ini
 
     productDetailContainer.innerHTML = `
       <img src="${product.image}">
@@ -62,11 +63,14 @@ const DetailProductPage = {
       event.preventDefault();
       const cartItem = {
         id: product.id,
+        seller: product.seller,
+        phone: store.phone,
         name: product.name,
         image: product.image,
         price: product.price,
         quantity: 1, // default quantity to 1
         uid: product.uid,
+        buyerName: user.name // Menyimpan nama pembeli
       };
 
       if (product.stock > 0) {
