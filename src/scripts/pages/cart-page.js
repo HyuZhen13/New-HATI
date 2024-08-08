@@ -1,40 +1,78 @@
-
 import CartData from './cart-data';
+import UserInfo from './user-info';
 
-class CartPage {
-  static async render() {
-    const cartItems = await CartData.getCartItems();
-    const cartContainer = document.getElementById('cart-page');
+const cartPage = {
+  async render() {
+    const cartItems = await CartData.getCart();
+    const totalPrice = cartItems ? Object.values(cartItems).reduce((total, item) => total + item.price * item.quantity, 0) : 0;
 
-    if (!cartItems || Object.keys(cartItems).length === 0) {
-      cartContainer.innerHTML = '<p>Cart is empty</p>';
-      return;
-    }
+    return `
+      <div id="cart">
+        <h1>Keranjang Belanja</h1>
+        <ul id="cart-items">
+          ${cartItems ? Object.values(cartItems).map(item => `
+            <li>
+              <img src="${item.image}" alt="${item.name}" />
+              <div>Nama: ${item.name}</div>
+              <div>Harga: ${item.price}</div>
+              <div>Penjual: ${item.seller}</div>
+              <div>Telepon: ${item.phone}</div>
+              <div>
+                <button data-id="${item.id}" class="decrease-quantity">-</button>
+                <span>${item.quantity}</span>
+                <button data-id="${item.id}" class="increase-quantity">+</button>
+                <button data-id="${item.id}" class="remove-item">Hapus</button>
+              </div>
+            </li>
+          `).join('') : '<li>Keranjang kosong</li>'}
+        </ul>
+        <div>Total: ${totalPrice}</div>
+        <button id="checkout-button">Checkout</button>
+      </div>
+    `;
+  },
 
-    cartContainer.innerHTML = '';
-    Object.values(cartItems).forEach((item) => {
-      cartContainer.innerHTML += `
-        <div class="cart-item">
-          <img src="${item.image}" alt="${item.name}">
-          <h2>${item.name}</h2>
-          <p>Price: ${item.price}</p>
-          <p>Quantity: ${item.quantity}</p>
-          <p>Seller: ${item.seller}</p> <!-- Tampilkan nama seller -->
-          <p>Phone: ${item.phone}</p> <!-- Tampilkan nomor telepon seller -->
-          <p>Buyer: ${item.buyerName}</p> <!-- Tampilkan nama pemesan -->
-          <button class="remove-button" data-id="${item.id}">Remove</button>
-        </div>
-      `;
-    });
-
-    document.querySelectorAll('.remove-button').forEach((button) => {
-      button.addEventListener('click', async (event) => {
-        const productId = event.target.dataset.id;
-        await CartData.removeFromCart(productId);
-        window.location.reload();
+  async afterRender() {
+    document.querySelectorAll('.increase-quantity').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const itemId = e.target.getAttribute('data-id');
+        const cartItem = await CartData.getCart();
+        const item = cartItem[itemId];
+        await CartData.updateItemQuantity(itemId, item.quantity + 1);
+        location.reload();
       });
     });
-  }
-}
 
-export default CartPage;
+    document.querySelectorAll('.decrease-quantity').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const itemId = e.target.getAttribute('data-id');
+        const cartItem = await CartData.getCart();
+        const item = cartItem[itemId];
+        if (item.quantity > 1) {
+          await CartData.updateItemQuantity(itemId, item.quantity - 1);
+          location.reload();
+        }
+      });
+    });
+
+    document.querySelectorAll('.remove-item').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const itemId = e.target.getAttribute('data-id');
+        await CartData.removeItemFromCart(itemId);
+        location.reload();
+      });
+    });
+
+    document.getElementById('checkout-button').addEventListener('click', async () => {
+      const cartItems = Object.values(await CartData.getCart());
+      if (cartItems.length > 0) {
+        await CartData.checkout(cartItems);
+        location.href = '#/order';
+      } else {
+        alert('Keranjang kosong, tidak bisa melakukan checkout.');
+      }
+    });
+  }
+};
+
+export default cartPage;
