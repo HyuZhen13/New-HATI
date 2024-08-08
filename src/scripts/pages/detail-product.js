@@ -36,7 +36,9 @@ const DetailProductPage = {
     const storeDetail = document.querySelector('#store-detail');
     const moreProduct = document.querySelector('#more-product');
     const feedbackList = document.querySelector('#feedback-list');
-    const user = UserData.getUserInfo(); // Mendapatkan informasi pengguna saat ini
+    
+    // Pastikan `getUserInfo` adalah fungsi yang ada dalam `UserInfo` atau `UserData`
+    const user = await UserData.getUserData(product.uid); // Misalnya mendapatkan data user saat ini
 
     productDetailContainer.innerHTML = `
       <img src="${product.image}" alt="${product.name}">
@@ -100,7 +102,7 @@ const DetailProductPage = {
             <h5 class="card-title">${item.name}</h5>
           </div>
           <div class="card-footer">
-            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
+            <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg'></i>' : ''}</small>
           </div>
         </div>
       `;
