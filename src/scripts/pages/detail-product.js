@@ -2,7 +2,6 @@ import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import CartData from '../utils/cart-data';
-import OrderData from '../utils/order-data';
 
 const DetailProductPage = {
   async render() {
@@ -17,7 +16,7 @@ const DetailProductPage = {
           </button>
         </div>
         <div id="more-product-container">
-          <h2>Other Items</h2>
+          <h2>Produk Lainnya</h2>
           <div id="more-product"></div>
         </div>
         <div id="feedback-container">
@@ -40,7 +39,7 @@ const DetailProductPage = {
     const user = UserData.getUserInfo(); // Mendapatkan informasi pengguna saat ini
 
     productDetailContainer.innerHTML = `
-      <img src="${product.image}">
+      <img src="${product.image}" alt="${product.name}">
       <div>
         <h3>${product.name}</h3>
         <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</p>
@@ -83,7 +82,7 @@ const DetailProductPage = {
     });
 
     storeDetail.innerHTML = `
-      <img src="${store.photo ? store.photo : './images/profile.png'}">
+      <img src="${store.photo ? store.photo : './images/profile.png'}" alt="${store.name}">
       <small class="text-muted">${store.name} ${store.isVerified === 'verified' ? '<i class="fa-solid fa-circle-check fa-lg"></i>' : ''}</small>
     `;
     storeDetail.addEventListener('click', (event) => {
@@ -95,7 +94,7 @@ const DetailProductPage = {
       const productItem = document.createElement('div');
       productItem.innerHTML = `
         <div class="card">
-          <img src="${item.image}" class="card-img-top" alt="...">
+          <img src="${item.image}" class="card-img-top" alt="${item.name}">
           <div class="card-body">
             <p class="card-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
             <h5 class="card-title">${item.name}</h5>
