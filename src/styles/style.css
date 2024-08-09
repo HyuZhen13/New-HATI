@@ -37,12 +37,176 @@ html {
   background-color: #1B9C85;
 }
 
-@media (max-width: 400px) {
-  .map-iframe {
-    width: 300px;
-    height: 300px;
-  }
+/* CartPage Styles */
+/* CartPage Styles */
+.cart-page {
+  font-family: Arial, sans-serif;
+  padding: 20px;
 }
+
+.cart-page h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+#cart-items-container {
+  margin-bottom: 20px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+.cart-item img {
+  width: 100px;
+  height: auto;
+  margin-right: 20px;
+  border-radius: 5px;
+}
+
+.cart-item div {
+  flex-grow: 1;
+}
+
+.cart-item h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.cart-item p {
+  margin: 5px 0;
+}
+
+.cart-item button {
+  padding: 5px 10px;
+  border: none;
+  color: #fff;
+  background-color: #007bff;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+.cart-item button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+#total-price-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 2px solid #ddd;
+  padding-top: 10px;
+}
+
+#total-price-container h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+#checkout-btn {
+  padding: 10px 20px;
+  border: none;
+  color: #fff;
+  background-color: #28a745;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 5px;
+}
+
+#checkout-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* OrderPage Styles */
+.order-page {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.order-page h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+#unpaid-orders, #paid-orders {
+  margin-bottom: 20px;
+}
+
+#unpaid-orders h3, #paid-orders h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+.order-item img {
+  width: 100px;
+  height: auto;
+  margin-right: 20px;
+}
+
+.order-item div {
+  flex-grow: 1;
+}
+
+.order-item h4 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.order-item p {
+  margin: 5px 0;
+}
+
+#payment-section {
+  margin-top: 20px;
+}
+
+#payment-section h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+#payment-proof {
+  margin-bottom: 10px;
+}
+
+#pay-btn {
+  padding: 10px 20px;
+  border: none;
+  color: #fff;
+  background-color: #28a745;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+#pay-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.order-item img {
+  width: 100px;
+  height: auto;
+  margin-right: 20px;
+}
+// end cart & order page //
 
 /* Styling untuk halaman detail produk */
 .product-detail {
