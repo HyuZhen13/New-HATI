@@ -1,7 +1,7 @@
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import CartData from '../utils/cart-data';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const CartPage = {
   async render() {
@@ -22,8 +22,12 @@ const CartPage = {
     const checkoutButton = document.querySelector('#checkout-button');
     const paymentProofInput = document.querySelector('#payment-proof');
 
+    // Mendapatkan UID pengguna saat ini
+    const user = await UserData.getUserInfo();
+    const uid = user.uid;
+
     // Fetch cart items
-    const cartItems = await CartData.getCartItems();
+    const cartItems = await CartData.getCartItems(uid);
     let totalCost = 0;
 
     // Render cart items
@@ -34,8 +38,9 @@ const CartPage = {
         <img src="${item.image}" alt="${item.name}">
         <div>
           <h3>${item.name}</h3>
+          <p>Penjual: ${item.seller}</p>
+          <p>Nomor Telepon: ${item.phone}</p>
           <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-          <p>Stok: ${item.stock}</p>
           <label for="quantity-${item.id}">Kuantitas:</label>
           <input type="number" id="quantity-${item.id}" value="${item.quantity}" min="1" max="${item.stock}">
           <button id="remove-${item.id}">Hapus</button>
@@ -51,7 +56,7 @@ const CartPage = {
         const newQuantity = parseInt(event.target.value, 10);
         if (newQuantity > 0 && newQuantity <= item.stock) {
           item.quantity = newQuantity;
-          await CartData.updateCartItem(item.id, newQuantity);
+          await CartData.updateCartItem(item.id, uid, newQuantity);
           totalCost = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
           updateTotalCost();
         } else {
@@ -62,7 +67,7 @@ const CartPage = {
       // Event listener for removing item
       const removeButton = document.querySelector(`#remove-${item.id}`);
       removeButton.addEventListener('click', async () => {
-        await CartData.removeCartItem(item.id);
+        await CartData.removeCartItem(item.id, uid);
         cartItem.remove();
         totalCost = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
         updateTotalCost();
@@ -98,7 +103,6 @@ const CartPage = {
           const paymentProofUrl = await uploadPaymentProof(paymentProofFile);
 
           // Create order data
-          const user = await UserData.getUserInfo();
           const orderItems = cartItems.map(item => ({
             id: item.id,
             seller: item.seller,
@@ -116,7 +120,7 @@ const CartPage = {
           await ProductData.moveToOrderPage(orderItems);
 
           // Clear cart
-          await CartData.clearCart();
+          await CartData.clearCart(uid);
 
           alert('Pesanan berhasil diproses.');
           window.location.href = '#/order';
