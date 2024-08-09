@@ -1,6 +1,7 @@
 import CartData from '../utils/cart-data';
 import OrderData from '../utils/order-data';
 import UserData from '../utils/user-data';
+import ProductData from '../utils/product-data'; // Pastikan Anda memiliki import ini
 
 const CartPage = {
   async render() {
@@ -25,6 +26,7 @@ const CartPage = {
 
     let totalPrice = 0;
 
+    // Menampilkan semua item dalam keranjang
     Object.values(cartItems).forEach(async (item) => {
       const product = await ProductData.getProductById(item.id);
 
@@ -55,6 +57,7 @@ const CartPage = {
       const increaseQuantityBtn = cartItemElement.querySelector('.increase-quantity');
       const removeItemBtn = cartItemElement.querySelector('.remove-item');
 
+      // Menangani klik tombol kurangi kuantitas
       reduceQuantityBtn.addEventListener('click', async () => {
         item.quantity -= 1;
         await CartData.updateCartItem(user.uid, item.id, { quantity: item.quantity });
@@ -65,6 +68,7 @@ const CartPage = {
         totalPriceContainer.innerText = Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice);
       });
 
+      // Menangani klik tombol tambah kuantitas
       increaseQuantityBtn.addEventListener('click', async () => {
         item.quantity += 1;
         await CartData.updateCartItem(user.uid, item.id, { quantity: item.quantity });
@@ -75,6 +79,7 @@ const CartPage = {
         totalPriceContainer.innerText = Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice);
       });
 
+      // Menangani klik tombol hapus item
       removeItemBtn.addEventListener('click', async () => {
         await CartData.removeCartItem(user.uid, item.id);
         cartItemElement.remove();
@@ -85,6 +90,7 @@ const CartPage = {
 
     checkoutBtn.disabled = Object.keys(cartItems).length === 0;
 
+    // Menangani klik tombol checkout
     checkoutBtn.addEventListener('click', async () => {
       const orderData = Object.values(cartItems).map(item => ({
         id: item.id,
@@ -95,10 +101,11 @@ const CartPage = {
         price: item.price,
         quantity: item.quantity,
         uid: item.uid,
-        buyerName: item.buyerName,
+        buyerName: user.name, // Gunakan nama pengguna saat ini
         status: 'belum dibayar',
       }));
 
+      // Simpan pesanan ke database dan bersihkan keranjang
       await OrderData.addOrder(user.uid, orderData);
       await CartData.clearCart(user.uid);
       alert('Checkout berhasil! Pesanan telah ditambahkan ke halaman pesanan.');
@@ -108,4 +115,3 @@ const CartPage = {
 };
 
 export default CartPage;
-
