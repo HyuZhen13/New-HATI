@@ -1,9 +1,11 @@
 import { getDatabase, ref, set, get, update, remove } from 'firebase/database';
+import { getStorage, ref as storageRef, getDownloadURL } from 'firebase/storage'; // Import Firebase Storage functions
 import CartData from './cart-data'; // Import CartData
 
 class OrderData {
   constructor() {
     this.db = getDatabase();
+    this.storage = getStorage(); // Initialize Firebase Storage
   }
 
   // Tambah pesanan ke database pesanan belum dibayar
