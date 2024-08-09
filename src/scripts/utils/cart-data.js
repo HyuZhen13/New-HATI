@@ -1,51 +1,44 @@
 import { getDatabase, ref, set, push, get, update, remove } from 'firebase/database';
 
 class CartData {
-  static async addCartItem(cartItem) {
+  static async addItemToCart(uid, item) {
     const db = getDatabase();
-    const cartRef = push(ref(db, 'cart/' + cartItem.uid));
-    await set(cartRef, cartItem);
+    const cartRef = ref(db, `carts/${uid}`);
+    const newItemRef = push(cartRef);
+    await set(newItemRef, item);
   }
 
   static async getCartItems(uid) {
     const db = getDatabase();
-    const cartRef = ref(db, `cart/${uid}`);
+    const cartRef = ref(db, `carts/${uid}`);
     const snapshot = await get(cartRef);
-    const cartItems = [];
     if (snapshot.exists()) {
-      snapshot.forEach((childSnapshot) => {
-        cartItems.push({
-          id: childSnapshot.key,
-          ...childSnapshot.val(),
-        });
-      });
+      const cartData = snapshot.val();
+      return Object.keys(cartData).map(key => ({
+        ...cartData[key],
+        id: key,
+      }));
+    } else {
+      return [];
     }
-    return cartItems;
   }
 
   static async updateCartItem(itemId, uid, newQuantity) {
     const db = getDatabase();
-    const itemRef = ref(db, `cart/${uid}/${itemId}`);
+    const itemRef = ref(db, `carts/${uid}/${itemId}`);
     await update(itemRef, { quantity: newQuantity });
   }
 
   static async removeCartItem(itemId, uid) {
     const db = getDatabase();
-    const itemRef = ref(db, `cart/${uid}/${itemId}`);
+    const itemRef = ref(db, `carts/${uid}/${itemId}`);
     await remove(itemRef);
   }
 
   static async clearCart(uid) {
     const db = getDatabase();
-    const cartRef = ref(db, `cart/${uid}`);
+    const cartRef = ref(db, `carts/${uid}`);
     await remove(cartRef);
-  }
-
-  // Method to upload payment proof and store its URL
-  static async setPaymentProof(uid, paymentProofUrl) {
-    const db = getDatabase();
-    const cartRef = ref(db, `cart/${uid}/paymentProof`);
-    await set(cartRef, { url: paymentProofUrl });
   }
 }
 
