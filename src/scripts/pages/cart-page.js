@@ -1,6 +1,7 @@
 import CartData from '../utils/cart-data';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const CartPage = {
   async render() {
@@ -83,35 +84,46 @@ const CartPage = {
     cartItemsContainer.appendChild(totalCostContainer);
     updateTotalCost();
 
+    // Enable checkout button if payment proof is uploaded
+    paymentProofInput.addEventListener('change', () => {
+      checkoutButton.disabled = paymentProofInput.files.length === 0;
+    });
+
     // Checkout functionality
     checkoutButton.addEventListener('click', async () => {
       const paymentProofFile = paymentProofInput.files[0];
       if (paymentProofFile) {
-        // Upload payment proof
-        const paymentProofUrl = await uploadPaymentProof(paymentProofFile);
+        try {
+          // Upload payment proof
+          const paymentProofUrl = await uploadPaymentProof(paymentProofFile);
 
-        // Create order data
-        const user = await UserData.getUserInfo();
-        const orderItems = cartItems.map(item => ({
-          id: item.id,
-          seller: item.seller,
-          phone: item.phone,
-          name: item.name,
-          image: item.image,
-          price: item.price,
-          quantity: item.quantity,
-          uid: item.uid,
-          buyerName: user.name,
-        }));
+          // Create order data
+          const user = await UserData.getUserInfo();
+          const orderItems = cartItems.map(item => ({
+            id: item.id,
+            seller: item.seller,
+            phone: item.phone,
+            name: item.name,
+            image: item.image,
+            price: item.price,
+            quantity: item.quantity,
+            uid: item.uid,
+            buyerName: user.name,
+            paymentProofUrl, // Include payment proof URL in the order data
+          }));
 
-        // Save order data to database
-        await ProductData.moveToOrderPage(orderItems);
+          // Save order data to database
+          await ProductData.moveToOrderPage(orderItems);
 
-        // Clear cart
-        await CartData.clearCart();
+          // Clear cart
+          await CartData.clearCart();
 
-        alert('Pesanan berhasil diproses.');
-        window.location.href = '#/order';
+          alert('Pesanan berhasil diproses.');
+          window.location.href = '#/order';
+        } catch (error) {
+          console.error('Gagal memproses pesanan:', error);
+          alert('Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.');
+        }
       } else {
         alert('Silakan unggah bukti pembayaran.');
       }
