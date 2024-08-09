@@ -1,10 +1,12 @@
 import { getDatabase, ref, set, get, update, remove } from 'firebase/database';
-import ProductData from './product-data'; // Import ProductData
-import UserData from './user-data'; // Import UserData
+import { getStorage, uploadBytes, ref as storageRef, getDownloadURL } from 'firebase/storage'; // Import Firebase Storage functions
+import ProductData from './product-data';
+import UserData from './user-data';
 
 class CartData {
   constructor() {
     this.db = getDatabase();
+    this.storage = getStorage(); // Initialize Firebase Storage
   }
 
   // Tambah produk ke keranjang
@@ -79,9 +81,17 @@ class CartData {
   }
 
   // Simpan data pesanan ke database pesanan belum dibayar
-  async saveOrder(uid, order) {
+  async saveOrder(uid, order, paymentProofFile) {
     const orderRef = ref(this.db, `orders/unpaid/${uid}/${order.id}`);
     try {
+      // Upload payment proof if available
+      if (paymentProofFile) {
+        const proofRef = storageRef(this.storage, `payment_proofs/${uid}/${order.id}`);
+        await uploadBytes(proofRef, paymentProofFile);
+        const proofURL = await getDownloadURL(proofRef);
+        order.paymentProofURL = proofURL;
+      }
+
       await set(orderRef, order);
     } catch (error) {
       console.error('Error saving order:', error);
