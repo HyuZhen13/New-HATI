@@ -1,44 +1,56 @@
 import { getDatabase, ref, set, push, get, update, remove } from 'firebase/database';
 
 class CartData {
-  static async addItemToCart(uid, item) {
+  // Menambahkan item ke keranjang berdasarkan uid
+  static async addCartItem(cartItem) {
     const db = getDatabase();
-    const cartRef = ref(db, `carts/${uid}`);
-    const newItemRef = push(cartRef);
-    await set(newItemRef, item);
+    const cartRef = push(ref(db, `cart/${cartItem.uid}`));
+    await set(cartRef, cartItem);
   }
 
+  // Mendapatkan semua item keranjang berdasarkan uid
   static async getCartItems(uid) {
     const db = getDatabase();
-    const cartRef = ref(db, `carts/${uid}`);
+    const cartRef = ref(db, `cart/${uid}`);
     const snapshot = await get(cartRef);
+    const cartItems = [];
     if (snapshot.exists()) {
-      const cartData = snapshot.val();
-      return Object.keys(cartData).map(key => ({
-        ...cartData[key],
-        id: key,
-      }));
-    } else {
-      return [];
+      snapshot.forEach((childSnapshot) => {
+        cartItems.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val(),
+        });
+      });
     }
+    return cartItems;
   }
 
-  static async updateCartItem(itemId, uid, newQuantity) {
+  // Memperbarui kuantitas item di keranjang dan data lain (jika diperlukan) berdasarkan itemId dan uid
+  static async updateCartItem(itemId, uid, updatedData) {
     const db = getDatabase();
-    const itemRef = ref(db, `carts/${uid}/${itemId}`);
-    await update(itemRef, { quantity: newQuantity });
+    const itemRef = ref(db, `cart/${uid}/${itemId}`);
+    await update(itemRef, updatedData);
   }
 
+  // Menghapus item dari keranjang berdasarkan itemId dan uid
   static async removeCartItem(itemId, uid) {
     const db = getDatabase();
-    const itemRef = ref(db, `carts/${uid}/${itemId}`);
+    const itemRef = ref(db, `cart/${uid}/${itemId}`);
     await remove(itemRef);
   }
 
+  // Menghapus semua item dari keranjang berdasarkan uid
   static async clearCart(uid) {
     const db = getDatabase();
-    const cartRef = ref(db, `carts/${uid}`);
+    const cartRef = ref(db, `cart/${uid}`);
     await remove(cartRef);
+  }
+
+  // Menyimpan bukti pembayaran dan mengupdate data pesanan dengan URL bukti pembayaran
+  static async setPaymentProof(uid, itemId, paymentProofUrl) {
+    const db = getDatabase();
+    const itemRef = ref(db, `cart/${uid}/${itemId}`);
+    await update(itemRef, { paymentProofUrl });
   }
 }
 
