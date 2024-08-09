@@ -1,6 +1,6 @@
 import OrderData from '../utils/order-data';
 import UserData from '../utils/user-data';
-import UrlParser from '../../routes/url-parser';
+import UrlParser from '../routes/url-parser';
 
 const OrderPage = {
   async render() {
