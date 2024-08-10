@@ -2,6 +2,7 @@ import UrlParser from '../routes/url-parser';
 import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import CartData from '../utils/cart-data';
+import OrderData from '../utils/order-data';
 
 const DetailProductPage = {
   async render() {
@@ -36,9 +37,9 @@ const DetailProductPage = {
     const storeDetail = document.querySelector('#store-detail');
     const moreProduct = document.querySelector('#more-product');
     const feedbackList = document.querySelector('#feedback-list');
-    
-    // Pastikan `getUserInfo` adalah fungsi yang ada dalam `UserInfo` atau `UserData`
-    const user = await UserData.getUserData(product.uid); // Misalnya mendapatkan data user saat ini
+
+    // Dapatkan data pengguna yang sedang login
+    const user = await UserData.getUserData(product.uid); 
 
     productDetailContainer.innerHTML = `
       <img src="${product.image}" alt="${product.name}">
@@ -64,10 +65,10 @@ const DetailProductPage = {
       event.preventDefault();
       const cartItem = {
         id: product.id,
-        seller: product.seller,
-        phone: store.phone,
-        name: product.name,
-        image: product.image,
+        seller: store.name,  // Menyimpan nama penjual dari store.name
+        phone: store.phone,  // Menyimpan nomor telepon penjual
+        name: product.name,  // Menyimpan nama produk
+        image: product.image,  // Menyimpan gambar produk
         price: product.price,
         quantity: 1, // default quantity to 1
         uid: product.uid,
