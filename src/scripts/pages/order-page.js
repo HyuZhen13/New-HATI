@@ -1,71 +1,146 @@
-import OrderData from '../utils/order-data';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import CartData from '../utils/cart-data';
+import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
-import UrlParser from '../routes/url-parser';
 
-const OrderPage = {
+const CartPage = {
   async render() {
     return `
-      <article class="order-page">
-        <h1>Riwayat Pesanan</h1>
-        <div id="order-details-container"></div>
+      <article class="cart-page">
+        <h1>Keranjang Belanja</h1>
+        <div id="cart-items-container"></div>
+        <div id="checkout-container">
+          <input type="file" id="payment-proof" accept="image/*">
+          <button id="checkout-button" disabled>Checkout</button>
+        </div>
       </article>
     `;
   },
 
   async afterRender() {
-    const orderDetailsContainer = document.querySelector('#order-details-container');
-    const user = await UserData.getUserInfo();
+    const cartItemsContainer = document.querySelector('#cart-items-container');
+    const checkoutButton = document.querySelector('#checkout-button');
+    const paymentProofInput = document.querySelector('#payment-proof');
 
-    try {
-      const orders = await OrderData.getOrdersByUserId(user.uid);
+    // Mendapatkan UID pengguna saat ini
+    const user = UserData.getUserInfo(); // Fixing the UserData reference
+    const uid = user.uid;
 
-      if (orders.length > 0) {
-        orders.forEach(order => {
-          let orderHtml = `
-            <div class="order" id="order-${order.id}">
-              <h2>Pesanan #${order.id}</h2>
-              <p>Status: ${order.status}</p>
-              <p>Tanggal: ${new Date(order.timestamp).toLocaleDateString('id-ID')}</p>
-              <h3>Detail Pesanan:</h3>
-              <div class="order-items">
-          `;
+    // Fetch cart items
+    const cartItems = await CartData.getCartItems(uid);
+    let totalCost = 0;
 
-          order.items.forEach(item => {
-            orderHtml += `
-              <div class="order-item">
-                <img src="${item.image}" alt="${item.name}">
-                <div>
-                  <h4>${item.name}</h4>
-                  <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                  <p>Kuantitas: ${item.quantity}</p>
-                  <p>Seller: ${item.seller}</p>
-                </div>
-              </div>
-            `;
-          });
+    // Render cart items
+    cartItems.forEach((item) => {
+      const cartItem = document.createElement('div');
+      cartItem.classList.add('cart-item');
+      cartItem.innerHTML = `
+        <img src="${item.image}" alt="${item.name}">
+        <div>
+          <h3>${item.name}</h3>
+          <p>Penjual: ${item.seller}</p>
+          <p>Nomor Telepon: ${item.phone}</p>
+          <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+          <label for="quantity-${item.id}">Kuantitas:</label>
+          <input type="number" id="quantity-${item.id}" value="${item.quantity}" min="1" max="${item.stock}">
+          <button id="remove-${item.id}">Hapus</button>
+        </div>
+      `;
+      cartItemsContainer.appendChild(cartItem);
 
-          orderHtml += `</div>`;
+      totalCost += item.price * item.quantity;
 
-          if (order.paymentProof) {
-            orderHtml += `
-              <h3>Bukti Pembayaran:</h3>
-              <img src="${order.paymentProof}" alt="Bukti Pembayaran" style="max-width: 300px;">
-            `;
-          } else {
-            orderHtml += `<p>Bukti pembayaran belum diterima.</p>`;
-          }
+      // Event listener for quantity change
+      const quantityInput = document.querySelector(`#quantity-${item.id}`);
+      quantityInput.addEventListener('change', async (event) => {
+        const newQuantity = parseInt(event.target.value, 10);
+        if (newQuantity > 0 && newQuantity <= item.stock) {
+          item.quantity = newQuantity;
+          await CartData.updateCartItem(item.id, uid, newQuantity);
+          totalCost = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+          updateTotalCost();
+        } else {
+          alert('Kuantitas tidak valid.');
+        }
+      });
 
-          orderHtml += `</div>`;
-          orderDetailsContainer.innerHTML += orderHtml;
-        });
-      } else {
-        orderDetailsContainer.innerHTML = '<p>Anda belum memiliki riwayat pesanan.</p>';
+      // Event listener for removing item
+      const removeButton = document.querySelector(`#remove-${item.id}`);
+      removeButton.addEventListener('click', async () => {
+        await CartData.removeCartItem(item.id, uid);
+        cartItem.remove();
+        totalCost = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        updateTotalCost();
+      });
+    });
+
+    const updateTotalCost = () => {
+      if (totalCostContainer) {
+        totalCostContainer.innerHTML = `
+          <h2>Total: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalCost)}</h2>
+        `;
+        checkoutButton.disabled = totalCost === 0;
       }
-    } catch (error) {
-      console.error('Error fetching order details:', error);
-      orderDetailsContainer.innerHTML = '<p>Terjadi kesalahan saat mengambil detail pesanan.</p>';
-    }
+    };
+
+    // Render total cost
+    const totalCostContainer = document.createElement('div');
+    totalCostContainer.id = 'total-cost-container';
+    cartItemsContainer.appendChild(totalCostContainer);
+    updateTotalCost();
+
+    // Enable checkout button if payment proof is uploaded
+    paymentProofInput.addEventListener('change', () => {
+      checkoutButton.disabled = paymentProofInput.files.length === 0;
+    });
+
+    // Checkout functionality
+    checkoutButton.addEventListener('click', async () => {
+      const paymentProofFile = paymentProofInput.files[0];
+      if (paymentProofFile) {
+        try {
+          // Upload payment proof
+          const paymentProofUrl = await uploadPaymentProof(paymentProofFile);
+
+          // Create order data
+          const orderItems = cartItems.map(item => ({
+            id: item.id,
+            seller: item.seller,
+            phone: item.phone,
+            name: item.name,
+            image: item.image,
+            price: item.price,
+            quantity: item.quantity,
+            uid: item.uid,
+            buyerName: user.name,
+            paymentProofUrl, // Include payment proof URL in the order data
+          }));
+
+          // Save order data to database
+          await ProductData.moveToOrderPage(orderItems);
+
+          // Clear cart
+          await CartData.clearCart(uid);
+
+          alert('Pesanan berhasil diproses.');
+          window.location.href = '#/order';
+        } catch (error) {
+          console.error('Gagal memproses pesanan:', error);
+          alert('Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.');
+        }
+      } else {
+        alert('Silakan unggah bukti pembayaran.');
+      }
+    });
   },
 };
 
-export default OrderPage;
+// Helper function to upload payment proof
+async function uploadPaymentProof(file) {
+  const storage = getStorage();
+  const storageReference = storageRef(storage, `payment-proofs/${Date.now()}-${file.name}`);
+  await uploadBytes(storageReference, file);
+  return await getDownloadURL(storageReference);
+}
+
+export default CartPage;
