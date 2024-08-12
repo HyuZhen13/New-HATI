@@ -112,12 +112,12 @@ class ProductData {
       await set(orderRef, {
         id: orderId,
         items: orderItems,
-        paymentProof: null, // Initially null, will be updated after payment
+        paymentProof: null, // Bukti pembayaran awalnya null, akan diperbarui setelah pembayaran
         timestamp: new Date().toISOString(),
-        status: 'unpaid', // Track payment status
+        status: 'unpaid', // Status pembayaran
       });
 
-      // Update stock for each product
+      // Update stok untuk setiap produk
       for (const order of orderItems) {
         const productRef = ref(db, `products/${order.id}`);
         const productSnapshot = await get(productRef);
@@ -174,6 +174,40 @@ class ProductData {
       }
 
       return sellerOrders;
+    } catch (e) {
+      console.log(e.message);
+    }
+  }
+
+  static async confirmPayment(userId, orderId, paymentProof) {
+    const db = getDatabase();
+    const orderRef = ref(db, `orders/${userId}/${orderId}`);
+    const storage = getStorage();
+    const paymentProofRef = storageRef(storage, `orders/${userId}/${orderId}/payment-proof`);
+
+    try {
+      // Upload bukti pembayaran
+      await uploadBytes(paymentProofRef, paymentProof);
+      const paymentProofUrl = await getDownloadURL(paymentProofRef);
+
+      // Update status pesanan menjadi "paid" dan simpan bukti pembayaran
+      await update(orderRef, {
+        paymentProof: paymentProofUrl,
+        status: 'paid',
+      });
+      
+      // Pindahkan ke database pesanan sudah dibayar
+      const paidOrderRef = ref(db, `paid-orders/${userId}/${orderId}`);
+      const orderSnapshot = await get(orderRef);
+      const orderData = orderSnapshot.val();
+
+      await set(paidOrderRef, orderData);
+
+      // Hapus dari database pesanan belum dibayar
+      await remove(orderRef);
+
+      location.href = '#/order';
+      location.reload();
     } catch (e) {
       console.log(e.message);
     }
