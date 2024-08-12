@@ -16,7 +16,7 @@ const CartPage = {
   },
 
   async afterRender() {
-    const cartItems = CartData.getCartItems();
+    const cartItems = CartData.getCartItems() || [];
     const cartItemsContainer = document.getElementById('cart-items');
     const totalPriceContainer = document.getElementById('total-price');
     const checkoutButton = document.getElementById('checkout-button');
@@ -24,20 +24,25 @@ const CartPage = {
 
     let totalPrice = 0;
 
-    cartItems.forEach((item) => {
-      const itemElement = document.createElement('div');
-      itemElement.innerHTML = `
-        <img src="${item.image}" alt="${item.name}" />
-        <p>${item.name}</p>
-        <p>Jumlah: ${item.quantity}</p>
-        <p>Harga: Rp ${item.price * item.quantity}</p>
-      `;
-      cartItemsContainer.appendChild(itemElement);
+    // Pastikan cartItems adalah array
+    if (Array.isArray(cartItems) && cartItems.length > 0) {
+      cartItems.forEach((item) => {
+        const itemElement = document.createElement('div');
+        itemElement.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" />
+          <p>${item.name}</p>
+          <p>Jumlah: ${item.quantity}</p>
+          <p>Harga: Rp ${item.price * item.quantity}</p>
+        `;
+        cartItemsContainer.appendChild(itemElement);
 
-      totalPrice += item.price * item.quantity;
-    });
+        totalPrice += item.price * item.quantity;
+      });
 
-    totalPriceContainer.innerHTML = `<h3>Total Harga: Rp ${totalPrice}</h3>`;
+      totalPriceContainer.innerHTML = `<h3>Total Harga: Rp ${totalPrice}</h3>`;
+    } else {
+      cartItemsContainer.innerHTML = '<p>Keranjang Anda kosong.</p>';
+    }
 
     paymentProofInput.addEventListener('change', () => {
       checkoutButton.disabled = !paymentProofInput.files.length;
