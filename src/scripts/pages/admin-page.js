@@ -8,6 +8,7 @@ import VerificationData from '../utils/verification-data';
 import OrderData from '../utils/order-data'; // Sesuaikan path dengan lokasi file OrderData
 import FeedbackData from '../utils/feedback-data'; // Sesuaikan path dengan lokasi file FeedbackData
 import { printOrderAsPDF } from '../pages/cetak-pesanan';
+import jsPDF from 'jspdf';
 
 const AdminPage = {
   async render() {
@@ -750,6 +751,16 @@ const AdminPage = {
         }, 1000);
       });
 
+      // Fungsi Cetak pdf
+      function printOrderAsPDF(order) {
+        const { jsPDF } = window.jspdf; // Pastikan jsPDF sudah di-include di halaman Anda
+        const doc = new jsPDF();
+        doc.text(`Order ID: ${order.id}`, 10, 10);
+        doc.text(`Name: ${order.name}`, 10, 20);
+        doc.text(`Price: ${order.price}`, 10, 30);
+        doc.addImage(order.image, 'JPEG', 10, 40, 180, 160);
+        doc.save(`Order_${order.id}.pdf`);
+      }
       
       // Menu manajemen Pesanan
       // eslint-disable-next-line no-undef
