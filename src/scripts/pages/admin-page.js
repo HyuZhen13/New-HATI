@@ -7,7 +7,7 @@ import UserInfo from '../utils/user-info';
 import VerificationData from '../utils/verification-data';
 import OrderData from '../utils/order-data'; // Sesuaikan path dengan lokasi file OrderData
 import FeedbackData from '../utils/feedback-data'; // Sesuaikan path dengan lokasi file FeedbackData
-
+import { printOrderAsPDF } from '../pages/cetak-pesanan';
 
 const AdminPage = {
   async render() {
@@ -846,16 +846,6 @@ const AdminPage = {
           hideLoadingIcon();
         }, 1000);
       });
-      
-          // Fungsi untuk mencetak pesanan sebagai PDF
-          function printOrderAsPDF(order) {
-              const doc = new jsPDF();
-              doc.text(`Order ID: ${order.id}`, 10, 10);
-              doc.text(`Name: ${order.name}`, 10, 20);
-              doc.text(`Price: ${order.price}`, 10, 30);
-              doc.addImage(order.image, 'JPEG', 10, 40, 180, 160);
-              doc.save(`Order_${order.id}.pdf`);
-            }
     }
   },
 };
