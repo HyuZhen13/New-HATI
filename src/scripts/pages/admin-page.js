@@ -851,7 +851,7 @@ const AdminPage = {
   },
 
   // Fungsi untuk mencetak pesanan sebagai PDF
-  function printOrderAsPDF(order) {
+const printOrderAsPDF(order) {
     const doc = new jsPDF();
     doc.text(`Order ID: ${order.id}`, 10, 10);
     doc.text(`Name: ${order.name}`, 10, 20);
