@@ -70,11 +70,18 @@ const CartPage = {
     checkoutButton.addEventListener('click', async () => {
       const paymentProof = CartData.getPaymentProof();
       if (paymentProof) {
-        try {
-          await CartData.moveToOrderPage();
-          location.href = '#/order';
-        } catch (error) {
-          alert('Gagal melakukan checkout: ' + error.message);
+        // Konfirmasi sebelum melanjutkan checkout
+        const userConfirmed = window.confirm("Pastikan Anda sudah menghubungi penjual sebelum checkout. Apakah Anda sudah konfirmasi ke penjual melalui WhatsApp?");
+
+        if (userConfirmed) {
+          try {
+            await CartData.moveToOrderPage();
+            location.href = '#/order';
+          } catch (error) {
+            alert('Gagal melakukan checkout: ' + error.message);
+          }
+        } else {
+          alert("Silakan hubungi penjual terlebih dahulu melalui WhatsApp sebelum melanjutkan checkout.");
         }
       } else {
         alert('Silakan unggah bukti pembayaran terlebih dahulu.');
@@ -82,4 +89,5 @@ const CartPage = {
     });
   },
 };
+
 export default CartPage;
