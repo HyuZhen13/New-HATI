@@ -1,53 +1,175 @@
-import { getDatabase, ref, set, push, get, update, remove } from 'firebase/database';
-
+/* eslint-disable consistent-return */
+/* eslint-disable object-shorthand */
+import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
+import UserInfo from './user-info';
 class OrderData {
-  static async saveOrder(order) {
+  // Mengambil pesanan terkini pengguna
+  static async getCurrentOrder() {
     const db = getDatabase();
-    const ordersRef = push(ref(db, `orders/${order.uid}`));
-    await set(ordersRef, order);
-    return ordersRef.key;
+    const userId = UserInfo.getUserInfo().uid;
+    const ordersRef = ref(db, `orders/${userId}`);
+    
+    try {
+      const ordersSnapshot = await get(ordersRef);
+      if (!ordersSnapshot.exists()) {
+        return null;
+      }
+      const ordersData = ordersSnapshot.val();
+      const orderIds = Object.keys(ordersData);
+      
+      // Mengembalikan pesanan terbaru
+      if (orderIds.length > 0) {
+        const latestOrderId = orderIds[orderIds.length - 1];
+        return ordersData[latestOrderId];
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching current order:', error);
+      throw error;
+    }
   }
-
-  static async getOrdersByUserId(uid) {
+  // Menyelesaikan pesanan terkini pengguna
+  static async completeOrder() {
     const db = getDatabase();
-    const ordersRef = ref(db, `orders/${uid}`);
-    const snapshot = await get(ordersRef);
-    const orders = [];
-    if (snapshot.exists()) {
-      snapshot.forEach((childSnapshot) => {
-        orders.push({
-          id: childSnapshot.key,
-          ...childSnapshot.val(),
+    const userId = UserInfo.getUserInfo().uid;
+    const ordersRef = ref(db, `orders/${userId}`);
+    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
+    
+    try {
+      const ordersSnapshot = await get(ordersRef);
+      if (!ordersSnapshot.exists()) {
+        throw new Error('Tidak ada pesanan yang ditemukan.');
+      }
+      const ordersData = ordersSnapshot.val();
+      const orderIds = Object.keys(ordersData);
+      if (orderIds.length > 0) {
+        const latestOrderId = orderIds[orderIds.length - 1];
+        const orderData = ordersData[latestOrderId];
+        const orderRef = ref(db, `orders/${userId}/${latestOrderId}`);
+        
+        // Perbarui status pesanan menjadi selesai
+        await update(orderRef, { status: 'completed' });
+        // Pindahkan pesanan ke completed-orders
+        await set(ref(db, `completed-orders/${userId}/${latestOrderId}`), orderData);
+        // Hapus pesanan dari orders
+        await remove(orderRef);
+        return orderData;
+      } else {
+        throw new Error('Tidak ada pesanan yang dapat diselesaikan.');
+      }
+    } catch (error) {
+      console.error('Error completing order:', error);
+      throw error;
+    }
+  }
+  // Menyimpan umpan balik produk
+  static async saveProductFeedback(orderId, productId, rating, comment) {
+    const db = getDatabase();
+    const userId = UserInfo.getUserInfo().uid;
+    const feedbackRef = ref(db, `product-feedback/${productId}/${userId}`);
+    const orderRef = ref(db, `orders/${userId}/${orderId}`);
+    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
+    try {
+      // Menyimpan umpan balik
+      await set(feedbackRef, { rating, comment });
+      // Memperbarui data pesanan
+      const orderSnapshot = await get(orderRef);
+      if (!orderSnapshot.exists()) {
+        throw new Error('Pesanan tidak ditemukan.');
+      }
+      const orderData = orderSnapshot.val();
+      const itemIndex = orderData.items.findIndex(item => item.id === productId);
+      if (itemIndex > -1) {
+        const item = orderData.items[itemIndex];
+        item.rating = rating;
+        item.comment = comment;
+        orderData.items[itemIndex] = item;
+        // Update order data dan completed orders data
+        await update(orderRef, { items: orderData.items });
+        await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
+      } else {
+        throw new Error('Produk tidak ditemukan dalam pesanan.');
+      }
+    } catch (error) {
+      console.error('Error saving feedback:', error);
+      throw error;
+    }
+  }
+  // Mengambil umpan balik produk
+  static async getProductFeedback(productId) {
+    const db = getDatabase();
+    const feedbackRef = ref(db, `product-feedback/${productId}`);
+    try {
+      const feedbackSnapshot = await get(feedbackRef);
+      if (!feedbackSnapshot.exists()) {
+        return [];
+      }
+      const feedbackData = feedbackSnapshot.val();
+      const feedbacks = Object.entries(feedbackData).map(([userId, feedback]) => ({
+        userId,
+        ...feedback
+      }));
+      console.log('Data umpan balik produk diambil dari Firebase:', feedbacks);
+      return feedbacks;
+    } catch (error) {
+      console.error('Error fetching product feedback:', error);
+      throw error;
+    }
+  }
+  // Mengambil pesanan yang telah selesai
+  static async getCompletedOrders(userId) {
+    const db = getDatabase();
+    const completedOrdersRef = ref(db, `completed-orders/${userId}`);
+    try {
+      const completedOrdersSnapshot = await get(completedOrdersRef);
+      if (completedOrdersSnapshot.exists()) {
+        return Object.values(completedOrdersSnapshot.val());
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching completed orders:', error);
+      throw error;
+    }
+  }
+  // Menghapus pesanan yang telah selesai
+  static async deleteCompletedOrder(orderId) {
+    const db = getDatabase();
+    const userId = UserInfo.getUserInfo().uid;
+    const orderRef = ref(db, `completed-orders/${userId}/${orderId}`);
+    try {
+      await remove(orderRef);
+    } catch (error) {
+      console.error('Error deleting completed order:', error);
+      throw error;
+    }
+  }
+  // Mengambil pesanan berdasarkan produk yang dijual
+  static async getOrdersByProducts(products) {
+    const db = getDatabase();
+    const ordersRef = ref(db, 'orders');
+    try {
+      const ordersSnapshot = await get(ordersRef);
+      if (!ordersSnapshot.exists()) {
+        return [];
+      }
+      const ordersData = ordersSnapshot.val();
+      const allOrders = [];
+
+      Object.values(ordersData).forEach(userOrders => {
+        Object.values(userOrders).forEach(order => {
+          if (products) {
+            const matchingProducts = order.items.filter(item => products.find(product => product.id === item.id));
+            if (matchingProducts.length > 0) {
+              allOrders.push(order);
+            }
+          }
         });
       });
+      return allOrders;
+    } catch (error) {
+      console.error('Error fetching orders by products:', error);
+      throw error;
     }
-    return orders;
-  }
-
-  static async getOrderById(uid, orderId) {
-    const db = getDatabase();
-    const orderRef = ref(db, `orders/${uid}/${orderId}`);
-    const snapshot = await get(orderRef);
-    return snapshot.exists() ? { id: orderId, ...snapshot.val() } : null;
-  }
-
-  static async updateOrderStatus(uid, orderId, status) {
-    const db = getDatabase();
-    const orderRef = ref(db, `orders/${uid}/${orderId}`);
-    await update(orderRef, { status });
-  }
-
-  static async setPaymentProof(uid, orderId, paymentProofUrl) {
-    const db = getDatabase();
-    const orderRef = ref(db, `orders/${uid}/${orderId}`);
-    await update(orderRef, { paymentProof: paymentProofUrl });
-  }
-
-  static async removeOrder(uid, orderId) {
-    const db = getDatabase();
-    const orderRef = ref(db, `orders/${uid}/${orderId}`);
-    await remove(orderRef);
   }
 }
-
 export default OrderData;
