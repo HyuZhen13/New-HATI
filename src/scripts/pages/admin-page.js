@@ -752,7 +752,7 @@ const AdminPage = {
       });
 
       // Fungsi Cetak pdf
-      const printOrderAsPDF = (order) => {
+      function printOrderAsPDF(order) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         doc.text(`Order ID: ${order.id}`, 10, 10);
