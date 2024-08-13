@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import {
   get, getDatabase, ref, set, child, update, remove,
 } from 'firebase/database';
@@ -27,17 +28,14 @@ class ProductData {
         stock: product.stock,
         image: url,
       });
-
       location.href = '#/profile';
       location.reload();
     } catch (e) {
       console.log(e.message);
     }
   }
-
   static async getProduct() {
     const dbRef = ref(getDatabase());
-
     try {
       const productSnapshot = await get(child(dbRef, 'products/'));
       return productSnapshot.val();
@@ -45,10 +43,8 @@ class ProductData {
       console.log(e.message);
     }
   }
-
   static async getProductById(id) {
     const dbRef = ref(getDatabase());
-
     try {
       const productSnapshot = await get(child(dbRef, `products/${id}`));
       return productSnapshot.val();
@@ -56,17 +52,14 @@ class ProductData {
       console.log(e.message);
     }
   }
-
   static async deleteProduct(id) {
     const dbRef = ref(getDatabase());
-
     try {
       await remove(child(dbRef, `products/${id}`));
     } catch (e) {
       console.log(e.message);
     }
   }
-
   static async updateProduct(product, image) {
     const db = getDatabase();
     const storage = getStorage();
@@ -94,7 +87,6 @@ class ProductData {
           stock: product.stock,
         });
       }
-
       location.href = '#/profile';
       location.reload();
     } catch (e) {
@@ -102,7 +94,7 @@ class ProductData {
     }
   }
 
-  static async moveToOrderPage(orderItems) {
+  static async moveToOrderPage(orderItems, paymentProof) {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
     const orderId = Date.now();
@@ -112,29 +104,25 @@ class ProductData {
       await set(orderRef, {
         id: orderId,
         items: orderItems,
-        paymentProof: null, // Bukti pembayaran awalnya null, akan diperbarui setelah pembayaran
+        paymentProof,
         timestamp: new Date().toISOString(),
-        status: 'unpaid', // Status pembayaran
       });
 
-      // Update stok untuk setiap produk
+      // Update stock for each product
       for (const order of orderItems) {
         const productRef = ref(db, `products/${order.id}`);
         const productSnapshot = await get(productRef);
         const productData = productSnapshot.val();
-
         const newStock = productData.stock - order.quantity;
         if (newStock < 0) {
           throw new Error(`Stok produk ${order.name} tidak mencukupi.`);
         }
-
         await update(productRef, { stock: newStock });
       }
     } catch (e) {
       console.log(e.message);
     }
   }
-
   static async getOrders(userId) {
     const dbRef = ref(getDatabase());
     try {
@@ -144,74 +132,5 @@ class ProductData {
       console.log(e.message);
     }
   }
-
-  static async getOrderById(userId, orderId) {
-    const dbRef = ref(getDatabase());
-    try {
-      const orderSnapshot = await get(child(dbRef, `orders/${userId}/${orderId}`));
-      return orderSnapshot.val();
-    } catch (e) {
-      console.log(e.message);
-    }
-  }
-
-  static async getOrdersBySeller(sellerId) {
-    const dbRef = ref(getDatabase());
-    try {
-      const ordersSnapshot = await get(child(dbRef, `orders/`));
-      const orders = ordersSnapshot.val();
-      const sellerOrders = {};
-
-      for (const [userId, userOrders] of Object.entries(orders)) {
-        for (const [orderId, orderData] of Object.entries(userOrders)) {
-          if (orderData.items.some(item => item.uid === sellerId)) {
-            if (!sellerOrders[userId]) {
-              sellerOrders[userId] = {};
-            }
-            sellerOrders[userId][orderId] = orderData;
-          }
-        }
-      }
-
-      return sellerOrders;
-    } catch (e) {
-      console.log(e.message);
-    }
-  }
-
-  static async confirmPayment(userId, orderId, paymentProof) {
-    const db = getDatabase();
-    const orderRef = ref(db, `orders/${userId}/${orderId}`);
-    const storage = getStorage();
-    const paymentProofRef = storageRef(storage, `orders/${userId}/${orderId}/payment-proof`);
-
-    try {
-      // Upload bukti pembayaran
-      await uploadBytes(paymentProofRef, paymentProof);
-      const paymentProofUrl = await getDownloadURL(paymentProofRef);
-
-      // Update status pesanan menjadi "paid" dan simpan bukti pembayaran
-      await update(orderRef, {
-        paymentProof: paymentProofUrl,
-        status: 'paid',
-      });
-      
-      // Pindahkan ke database pesanan sudah dibayar
-      const paidOrderRef = ref(db, `paid-orders/${userId}/${orderId}`);
-      const orderSnapshot = await get(orderRef);
-      const orderData = orderSnapshot.val();
-
-      await set(paidOrderRef, orderData);
-
-      // Hapus dari database pesanan belum dibayar
-      await remove(orderRef);
-
-      location.href = '#/order';
-      location.reload();
-    } catch (e) {
-      console.log(e.message);
-    }
-  }
 }
-
 export default ProductData;
