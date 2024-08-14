@@ -850,59 +850,54 @@ const AdminPage = {
 
       // Menu manajemen Pesanan
       menuPesanan.addEventListener('click', () => {
-        showLoadingIcon();
-        setTimeout(async () => {
-          // Menghapus elemen HTML di luar elemen inner
-          const parentElement = contentContainer.parentNode;
-          while (parentElement.firstChild !== contentContainer) {
-            parentElement.removeChild(parentElement.firstChild);
-          }
-          contentContainer.innerHTML = `
-            <h2>Pesanan</h2>
-            <div id="order-list-admin" class="order-list"></div>
-          `;
-          const orderList = document.querySelector('#order-list-admin');
-          try {
-            const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
-            if (orders) {
-              console.log('Order data:', orders);
-              orders.reverse().forEach((order) => {
-                order.items.forEach((item) => {
-                  // Memeriksa apakah produk yang terjual adalah produk pengguna
-                  if (userProducts.some(product => product.id === item.id)) {
-                    const orderItem = document.createElement('div');
-                    orderItem.innerHTML = `
-                      <div class="order-item">
-                        <img src="${item.image}" class="order-img" alt="${item.name}">
-                        <div class="order-body">
-                          <h5 class="order-title">${item.name}</h5>
-                          <p class="order-price">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                          <div class="feedback">
-                            <p><strong>${order.buyerName}</strong></p>
-                            <p>Rating: ${item.rating || 'N/A'}</p>
-                            <p>${item.comment || 'No comments'}</p>
-                          </div>
-                        </div>
-                        <div class="order-footer">
-                          <small class="text-muted">Ordered on ${new Date(order.timestamp).toLocaleDateString()}</small>
+      showLoadingIcon();
+      setTimeout(async () => {
+        // Menghapus elemen HTML di luar elemen inner
+        const parentElement = contentContainer.parentNode;
+        while (parentElement.firstChild !== contentContainer) {
+          parentElement.removeChild(parentElement.firstChild);
+        }
+        contentContainer.innerHTML = `
+          <h2>Pesanan</h2>
+          <div id="order-list-admin" class="order-list"></div>
+        `;
+        const orderList = document.querySelector('#order-list-admin');
+        
+        try {
+          const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
+          if (orders) {
+            console.log('Order data:', orders);
+            orders.reverse().forEach((order) => {
+              order.items.forEach((item) => {
+                if (userProducts.some(product => product.id === item.id)) {
+                  const orderItem = document.createElement('div');
+                  orderItem.innerHTML = `
+                    <div class="order-item">
+                      <img src="${item.image}" class="order-img" alt="${item.name}">
+                      <div class="order-body">
+                        <h5 class="order-title">${item.name}</h5>
+                        <p class="order-price">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+                        <div class="feedback">
+                          <p><strong>${order.buyerName}</strong></p>
+                          <p>Rating: ${item.rating || 'N/A'}</p>
+                          <p>${item.comment || 'No comments'}</p>
                         </div>
                       </div>
-                    `;
-                    orderList.appendChild(orderItem);
-                  }
-                });
+                      <div class="order-footer">
+                        <small class="text-muted">Ordered on ${new Date(order.timestamp).toLocaleDateString()}</small>
+                      </div>
+                    </div>
+                  `;
+                  orderList.appendChild(orderItem);
+                }
               });
-            } else {
-              const orderText = document.createElement('h4');
-              orderText.innerText = 'No orders found.';
-              orderList.appendChild(orderText);
-            }
-          } catch (error) {
-            console.log('Error fetching orders:', error.message);
+            });
           }
-          hideLoadingIcon();
-        }, 1000);
-      });
+        } catch (error) {
+          console.log('Error fetching orders:', error.message);
+        }
+      }, 500);
+    });
 
 
     }
