@@ -2,6 +2,7 @@
 /* eslint-disable object-shorthand */
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
 import UserInfo from './user-info';
+
 class OrderData {
   // Mengambil pesanan terkini pengguna
   static async getCurrentOrder() {
@@ -28,6 +29,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Menyelesaikan pesanan terkini pengguna
   static async completeOrder() {
     const db = getDatabase();
@@ -62,6 +64,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Menyimpan umpan balik produk
   static async saveProductFeedback(orderId, productId, rating, comment) {
     const db = getDatabase();
@@ -95,6 +98,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Mengambil umpan balik produk
   static async getProductFeedback(productId) {
     const db = getDatabase();
@@ -116,6 +120,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Mengambil pesanan yang telah selesai
   static async getCompletedOrders(userId) {
     const db = getDatabase();
@@ -131,6 +136,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Menghapus pesanan yang telah selesai
   static async deleteCompletedOrder(orderId) {
     const db = getDatabase();
@@ -143,6 +149,7 @@ class OrderData {
       throw error;
     }
   }
+
   // Mengambil pesanan berdasarkan produk yang dijual
   static async getOrdersByProducts(products) {
     const db = getDatabase();
@@ -171,5 +178,36 @@ class OrderData {
       throw error;
     }
   }
+
+  // Fungsi untuk mendapatkan daftar ID produk dari semua pesanan
+  static async getProductIds() {
+    const db = getDatabase();
+    const ordersRef = ref(db, 'orders');
+
+    try {
+      const ordersSnapshot = await get(ordersRef);
+      if (!ordersSnapshot.exists()) {
+        return [];
+      }
+      const ordersData = ordersSnapshot.val();
+      const productIds = [];
+
+      // Loop melalui pesanan untuk mengumpulkan semua productId
+      Object.values(ordersData).forEach(userOrders => {
+        Object.values(userOrders).forEach(order => {
+          order.items.forEach(item => {
+            if (!productIds.includes(item.id)) {
+              productIds.push(item.id);
+            }
+          });
+        });
+      });
+      return productIds;
+    } catch (error) {
+      console.error('Error fetching product IDs:', error);
+      throw error;
+    }
+  }
 }
+
 export default OrderData;
