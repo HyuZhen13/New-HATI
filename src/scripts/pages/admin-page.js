@@ -422,7 +422,6 @@ const AdminPage = {
             <li class="menu-item" id="menuToko">Toko</li>
             <li class="menu-item" id="menuProduk">Produk</li>
             <li class="menu-item" id="menuPesanan">Pesanan</li> 
-            <li class="menu-item" id="menuFeedback">Feedback</li>
           </ul>
         </div>
         <div class="content">
@@ -864,41 +863,33 @@ const AdminPage = {
           `;
           const orderList = document.querySelector('#order-list-admin');
           try {
-            const userId = UserInfo.getUserInfo().uid;
-            console.log('Fetching orders for user:', userId);
-            const orders = await OrderData.getOrders(userId); // Pastikan getOrders ada di OrderData
-            if (orders && orders.length > 0) {
-              orders.forEach((order) => {
+            const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
+            if (orders) {
+              console.log('Order data:', orders);
+              orders.reverse().forEach((order) => {
                 order.items.forEach((item) => {
-                  const orderItem = document.createElement('div');
-                  orderItem.innerHTML = `
-                    <div class="order-item">
-                      <img src="${item.image}" class="order-img-top" alt="${item.name}">
-                      <div class="order-body">
-                        <h5 class="order-title">${item.name}</h5>
-                        <p class="order-text">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                        <p class="order-quantity">Quantity: ${item.quantity}</p>
+                  // Memeriksa apakah produk yang terjual adalah produk pengguna
+                  if (userProducts.some(product => product.id === item.id)) {
+                    const orderItem = document.createElement('div');
+                    orderItem.innerHTML = `
+                      <div class="order-item">
+                        <img src="${item.image}" class="order-img" alt="${item.name}">
+                        <div class="order-body">
+                          <h5 class="order-title">${item.name}</h5>
+                          <p class="order-price">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+                          <div class="feedback">
+                            <p><strong>${order.buyerName}</strong></p>
+                            <p>Rating: ${item.rating || 'N/A'}</p>
+                            <p>${item.comment || 'No comments'}</p>
+                          </div>
+                        </div>
+                        <div class="order-footer">
+                          <small class="text-muted">Ordered on ${new Date(order.timestamp).toLocaleDateString()}</small>
+                        </div>
                       </div>
-                      <div class="order-footer">
-                        <small class="text-muted">Buyer: ${order.buyerName}</small>
-                        <button class="delete" id="remove-${order.id}">Hapus</button>
-                        <button class="print" id="print-${order.id}">Cetak PDF</button>
-                      </div>
-                    </div>
-                  `;
-                  orderList.appendChild(orderItem);
-                  document.querySelector(`#remove-${order.id}`).addEventListener('click', async (event) => {
-                    event.preventDefault();
-                    if (order.id) {
-                      await OrderData.deleteCompletedOrder(order.id); // Hapus pesanan
-                      document.querySelector('#menuPesanan').click(); // Refresh daftar pesanan
-                    }
-                  });
-                  document.querySelector(`#print-${order.id}`).addEventListener('click', (event) => {
-                    event.preventDefault();
-                    // Fungsi untuk mencetak pesanan sebagai PDF
-                    printOrderAsPDF(order);
-                  });
+                    `;
+                    orderList.appendChild(orderItem);
+                  }
                 });
               });
             } else {
@@ -907,62 +898,12 @@ const AdminPage = {
               orderList.appendChild(orderText);
             }
           } catch (error) {
-            console.error('Error getting orders:', error.message);
+            console.log('Error fetching orders:', error.message);
           }
           hideLoadingIcon();
         }, 1000);
       });
 
-      // Menu manajemen Feedback
-      menuFeedback.addEventListener('click', () => {
-        showLoadingIcon();
-        setTimeout(async () => {
-          // Menghapus elemen HTML di luar elemen inner
-          const parentElement = contentContainer.parentNode;
-          while (parentElement.firstChild !== contentContainer) {
-            parentElement.removeChild(parentElement.firstChild);
-          }
-          contentContainer.innerHTML = `
-            <h2>Feedback</h2>
-            <div id="feedback-list-admin" class="verification-list"></div>
-          `;
-          const feedbackList = document.querySelector('#feedback-list-admin');
-          try {
-            const productIds = await OrderData.getProductIds(); // Ambil daftar productId
-            for (const productId of productIds) {
-              const feedbacks = await OrderData.getProductFeedback(productId); // Ambil feedback untuk setiap productId
-              if (feedbacks && feedbacks.length > 0) {
-                feedbacks.reverse().forEach((feedback) => {
-                  const feedbackItem = document.createElement('div');
-                  feedbackItem.innerHTML = `
-                    <div class="verification-item">
-                      <p class="feedback-user">User: ${feedback.userId}</p>
-                      <p class="feedback-comment">Comment: ${feedback.comment}</p>
-                      <p class="feedback-rating">Rating: ${feedback.rating}</p>
-                      <button class="delete" id="delete-${feedback.userId}-${productId}">Hapus</button>
-                    </div>
-                  `;
-                  feedbackList.appendChild(feedbackItem);
-                  document.querySelector(`#delete-${feedback.userId}-${productId}`).addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    if (feedback.userId) {
-                      await OrderData.deleteFeedback(productId, feedback.userId); // Hapus feedback
-                      document.querySelector('#menuFeedback').click(); // Refresh daftar feedback
-                    }
-                  });
-                });
-              } else {
-                const feedbackText = document.createElement('h4');
-                feedbackText.innerText = `No feedback found for product ID: ${productId}`;
-                feedbackList.appendChild(feedbackText);
-              }
-            }
-          } catch (error) {
-            console.error('Error getting feedback:', error.message);
-          }
-          hideLoadingIcon();
-        }, 1000);
-      });
 
     }
   },
