@@ -5,8 +5,7 @@ import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import UserInfo from '../utils/user-info';
 import VerificationData from '../utils/verification-data';
-import OrderData from '../utils/order-data'; // Sesuaikan path dengan lokasi file OrderData
-import FeedbackData from '../utils/feedback-data'; // Sesuaikan path dengan lokasi file FeedbackData
+import OrderData from '../utils/order-data';
 import { printOrderAsPDF } from '../pages/cetak-pesanan';
 import jsPDF from 'jspdf';
 
