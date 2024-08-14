@@ -761,99 +761,118 @@ const AdminPage = {
         doc.save(`Order_${order.id}.pdf`);
       };
 
-      // Menu manajemen Pesanan
-      menuPesanan.addEventListener('click', () => {
-        showLoadingIcon();
-        setTimeout(async () => {
-          // Menghapus elemen HTML di luar elemen inner
-          const parentElement = contentContainer.parentNode;
-          while (parentElement.firstChild !== contentContainer) {
-            parentElement.removeChild(parentElement.firstChild);
-          }
-          contentContainer.innerHTML = `
-            <h2>Pesanan</h2>
-            <div id="order-list-admin" class="product-list"></div>
-          `;
-          const orderList = document.querySelector('#order-list-admin');
-          const products = null; // Sesuaikan dengan daftar produk yang ingin difilter
-          const orders = await OrderData.getOrdersByProducts(products); // Ambil data pesanan berdasarkan produk
-          if (orders) {
-            orders.reverse().forEach((order) => {
-              const orderItem = document.createElement('div');
-              orderItem.innerHTML = `
-                <div class="product-item">
-                  <img class="product-image" src="${order.image}">
-                  <p class="product-name">${order.name}</p>
-                  <p class="product-price">${order.price}</p>
-                  <div class="product-actions">
-                    <button class="delete" id="remove-${order.id}">Hapus</button>
-                    <button class="print" id="print-${order.id}">Cetak PDF</button>
-                  </div>
-                </div>
-              `;
-              orderList.appendChild(orderItem);
-              document.querySelector(`#remove-${order.id}`).addEventListener('click', async (event) => {
-                event.preventDefault();
-                if (order.id) {
-                  await OrderData.deleteCompletedOrder(order.id); // Hapus pesanan
-                  document.querySelector('#menuPesanan').click(); // Refresh daftar pesanan
-                }
-              });
-              document.querySelector(`#print-${order.id}`).addEventListener('click', (event) => {
-                event.preventDefault();
-                // Fungsi untuk mencetak pesanan sebagai PDF
-                printOrderAsPDF(order);
-              });
-            });
-          }
-          hideLoadingIcon();
-        }, 1000);
-      });
-      
-      // Menu manajemen Feedback
-      menuFeedback.addEventListener('click', () => {
-        showLoadingIcon();
-        setTimeout(async () => {
-          // Menghapus elemen HTML di luar elemen inner
-          const parentElement = contentContainer.parentNode;
-          while (parentElement.firstChild !== contentContainer) {
-            parentElement.removeChild(parentElement.firstChild);
-          }
-          contentContainer.innerHTML = `
-            <h2>Feedback</h2>
-            <div id="feedback-list-admin" class="verification-list"></div>
-          `;
-          const feedbackList = document.querySelector('#feedback-list-admin');
-          const productIds = await OrderData.getProductIds(); // Ambil daftar productId jika ada
-          for (const productId of productIds) {
-            const feedbacks = await OrderData.getProductFeedback(productId); // Ambil feedback untuk setiap productId
-            if (feedbacks) {
-              feedbacks.reverse().forEach((feedback) => {
-                const feedbackItem = document.createElement('div');
-                feedbackItem.innerHTML = `
-                  <div class="verification-item">
-                    <p class="store-name">${feedback.userId}</p>
-                    <p class="store-name">${feedback.comment}</p>
-                    <p class="store-name">Rating: ${feedback.rating}</p>
-                    <div class="product-actions">
-                      <button class="delete" id="delete-${feedback.userId}-${productId}">Hapus</button>
-                    </div>
-                  </div>
-                `;
-                feedbackList.appendChild(feedbackItem);
-                document.querySelector(`#delete-${feedback.userId}-${productId}`).addEventListener('click', async (e) => {
-                  e.preventDefault();
-                  if (feedback.userId) {
-                    await OrderData.deleteFeedback(productId, feedback.userId); // Hapus feedback
-                    document.querySelector('#menuFeedback').click(); // Refresh daftar feedback
-                  }
-                });
-              });
+     // Menu manajemen Pesanan
+        menuPesanan.addEventListener('click', () => {
+          showLoadingIcon();
+          setTimeout(async () => {
+            // Menghapus elemen HTML di luar elemen inner
+            const parentElement = contentContainer.parentNode;
+            while (parentElement.firstChild !== contentContainer) {
+              parentElement.removeChild(parentElement.firstChild);
             }
-          }
-          hideLoadingIcon();
-        }, 1000);
-      });
+            contentContainer.innerHTML = `
+              <h2>Pesanan</h2>
+              <div id="order-list-admin" class="product-list"></div>
+            `;
+            const orderList = document.querySelector('#order-list-admin');
+            const products = []; // Sesuaikan dengan daftar produk yang ingin difilter
+            try {
+              const orders = await OrderData.getOrdersByProducts(products); // Ambil data pesanan berdasarkan produk
+              if (orders.length > 0) {
+                orders.reverse().forEach((order) => {
+                  order.items.forEach((item) => {
+                    const orderItem = document.createElement('div');
+                    orderItem.innerHTML = `
+                      <div class="product-item">
+                        <img class="product-image" src="${item.image}">
+                        <p class="product-name">${item.name}</p>
+                        <p class="product-price">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
+                        <p class="product-quantity">Quantity: ${item.quantity}</p>
+                        <div class="product-actions">
+                          <button class="delete" id="remove-${order.id}">Hapus</button>
+                          <button class="print" id="print-${order.id}">Cetak PDF</button>
+                        </div>
+                      </div>
+                    `;
+                    orderList.appendChild(orderItem);
+                    document.querySelector(`#remove-${order.id}`).addEventListener('click', async (event) => {
+                      event.preventDefault();
+                      if (order.id) {
+                        await OrderData.deleteCompletedOrder(order.id); // Hapus pesanan
+                        document.querySelector('#menuPesanan').click(); // Refresh daftar pesanan
+                      }
+                    });
+                    document.querySelector(`#print-${order.id}`).addEventListener('click', (event) => {
+                      event.preventDefault();
+                      // Fungsi untuk mencetak pesanan sebagai PDF
+                      printOrderAsPDF(order);
+                    });
+                  });
+                });
+              } else {
+                const orderText = document.createElement('h4');
+                orderText.innerText = 'No orders found.';
+                orderList.appendChild(orderText);
+              }
+            } catch (error) {
+              console.error('Error getting orders:', error.message);
+            }
+            hideLoadingIcon();
+          }, 1000);
+        });
+      
+     // Menu manajemen Feedback
+        menuFeedback.addEventListener('click', () => {
+          showLoadingIcon();
+          setTimeout(async () => {
+            // Menghapus elemen HTML di luar elemen inner
+            const parentElement = contentContainer.parentNode;
+            while (parentElement.firstChild !== contentContainer) {
+              parentElement.removeChild(parentElement.firstChild);
+            }
+            contentContainer.innerHTML = `
+              <h2>Feedback</h2>
+              <div id="feedback-list-admin" class="verification-list"></div>
+            `;
+            const feedbackList = document.querySelector('#feedback-list-admin');
+            try {
+              const productIds = await OrderData.getProductIds(); // Ambil daftar productId jika ada
+              for (const productId of productIds) {
+                const feedbacks = await OrderData.getProductFeedback(productId); // Ambil feedback untuk setiap productId
+                if (feedbacks.length > 0) {
+                  feedbacks.reverse().forEach((feedback) => {
+                    const feedbackItem = document.createElement('div');
+                    feedbackItem.innerHTML = `
+                      <div class="verification-item">
+                        <p class="store-name">User: ${feedback.userId}</p>
+                        <p class="store-name">Comment: ${feedback.comment}</p>
+                        <p class="store-name">Rating: ${feedback.rating}</p>
+                        <div class="product-actions">
+                          <button class="delete" id="delete-${feedback.userId}-${productId}">Hapus</button>
+                        </div>
+                      </div>
+                    `;
+                    feedbackList.appendChild(feedbackItem);
+                    document.querySelector(`#delete-${feedback.userId}-${productId}`).addEventListener('click', async (e) => {
+                      e.preventDefault();
+                      if (feedback.userId) {
+                        await OrderData.deleteFeedback(productId, feedback.userId); // Hapus feedback
+                        document.querySelector('#menuFeedback').click(); // Refresh daftar feedback
+                      }
+                    });
+                  });
+                } else {
+                  const feedbackText = document.createElement('h4');
+                  feedbackText.innerText = `No feedback found for product ID: ${productId}`;
+                  feedbackList.appendChild(feedbackText);
+                }
+              }
+            } catch (error) {
+              console.error('Error getting feedback:', error.message);
+            }
+            hideLoadingIcon();
+          }, 1000);
+        });
 
     }
   },
