@@ -1,5 +1,3 @@
-/* eslint-disable consistent-return */
-/* eslint-disable object-shorthand */
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
 import UserInfo from './user-info';
 
