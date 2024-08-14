@@ -213,6 +213,22 @@ class OrderData {
       throw error;
     }
   }
+
+  // Fungsi baru untuk mengambil semua pesanan pengguna
+  static async getOrders(userId) {
+    const db = getDatabase();
+    const ordersRef = ref(db, `orders/${userId}`);
+    try {
+      const ordersSnapshot = await get(ordersRef);
+      if (ordersSnapshot.exists()) {
+        return Object.values(ordersSnapshot.val());
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw error;
+    }
+  }
 }
 
 export default OrderData;
