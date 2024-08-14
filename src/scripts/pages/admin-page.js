@@ -762,7 +762,6 @@ const AdminPage = {
       };
 
       // Menu manajemen Pesanan
-      // eslint-disable-next-line no-undef
       menuPesanan.addEventListener('click', () => {
         showLoadingIcon();
         setTimeout(async () => {
@@ -776,9 +775,10 @@ const AdminPage = {
             <div id="order-list-admin" class="product-list"></div>
           `;
           const orderList = document.querySelector('#order-list-admin');
-          const orders = await OrderData.getOrders(); // Ambil data pesanan
+          const products = null; // Sesuaikan dengan daftar produk yang ingin difilter
+          const orders = await OrderData.getOrdersByProducts(products); // Ambil data pesanan berdasarkan produk
           if (orders) {
-            Object.values(orders).reverse().forEach((order) => {
+            orders.reverse().forEach((order) => {
               const orderItem = document.createElement('div');
               orderItem.innerHTML = `
                 <div class="product-item">
@@ -795,7 +795,7 @@ const AdminPage = {
               document.querySelector(`#remove-${order.id}`).addEventListener('click', async (event) => {
                 event.preventDefault();
                 if (order.id) {
-                  await OrderData.deleteOrder(order.id); // Hapus pesanan
+                  await OrderData.deleteCompletedOrder(order.id); // Hapus pesanan
                   document.querySelector('#menuPesanan').click(); // Refresh daftar pesanan
                 }
               });
@@ -809,9 +809,8 @@ const AdminPage = {
           hideLoadingIcon();
         }, 1000);
       });
-
+      
       // Menu manajemen Feedback
-      // eslint-disable-next-line no-undef
       menuFeedback.addEventListener('click', () => {
         showLoadingIcon();
         setTimeout(async () => {
@@ -825,28 +824,27 @@ const AdminPage = {
             <div id="feedback-list-admin" class="verification-list"></div>
           `;
           const feedbackList = document.querySelector('#feedback-list-admin');
-          // Ambil feedback dari path `product-feedback/${productId}/${userId}`
           const productIds = await OrderData.getProductIds(); // Ambil daftar productId jika ada
           for (const productId of productIds) {
-            const feedbacks = await OrderData.getFeedback(productId); // Ambil feedback untuk setiap productId
+            const feedbacks = await OrderData.getProductFeedback(productId); // Ambil feedback untuk setiap productId
             if (feedbacks) {
-              Object.values(feedbacks).reverse().forEach((feedback) => {
+              feedbacks.reverse().forEach((feedback) => {
                 const feedbackItem = document.createElement('div');
                 feedbackItem.innerHTML = `
                   <div class="verification-item">
-                    <p class="store-name">${feedback.name}</p>
+                    <p class="store-name">${feedback.userId}</p>
                     <p class="store-name">${feedback.comment}</p>
                     <p class="store-name">Rating: ${feedback.rating}</p>
                     <div class="product-actions">
-                      <button class="delete" id="delete-${feedback.id}">Hapus</button>
+                      <button class="delete" id="delete-${feedback.userId}-${productId}">Hapus</button>
                     </div>
                   </div>
                 `;
                 feedbackList.appendChild(feedbackItem);
-                document.querySelector(`#delete-${feedback.id}`).addEventListener('click', async (e) => {
+                document.querySelector(`#delete-${feedback.userId}-${productId}`).addEventListener('click', async (e) => {
                   e.preventDefault();
-                  if (feedback.id) {
-                    await OrderData.deleteFeedback(productId, feedback.id); // Hapus feedback
+                  if (feedback.userId) {
+                    await OrderData.deleteFeedback(productId, feedback.userId); // Hapus feedback
                     document.querySelector('#menuFeedback').click(); // Refresh daftar feedback
                   }
                 });
@@ -856,6 +854,7 @@ const AdminPage = {
           hideLoadingIcon();
         }, 1000);
       });
+
     }
   },
 };
