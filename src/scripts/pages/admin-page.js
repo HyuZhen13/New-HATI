@@ -296,6 +296,94 @@ const AdminPage = {
             margin-bottom: 10px;
           }
         }
+
+                /* CSS untuk tampilan pesanan */
+        .order-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        
+        .order-item {
+          display: flex;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          padding: 10px;
+        }
+        
+        .order-item img {
+          max-width: 100px;
+          height: auto;
+          border-radius: 5px;
+        }
+        
+        .order-body {
+          flex: 1;
+          margin-left: 10px;
+        }
+        
+        .order-title {
+          font-size: 1.2em;
+          margin: 0;
+        }
+        
+        .order-text {
+          margin: 5px 0;
+        }
+        
+        .order-quantity {
+          margin: 5px 0;
+        }
+        
+        .order-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .delete, .print {
+          padding: 5px 10px;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+        }
+        
+        .delete {
+          background-color: #f44336;
+          color: white;
+        }
+        
+        .print {
+          background-color: #4caf50;
+          color: white;
+        }
+        
+        /* CSS untuk tampilan feedback */
+        .feedback-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        
+        .feedback-item {
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          padding: 10px;
+        }
+        
+        .feedback-user, .feedback-comment, .feedback-rating {
+          margin: 5px 0;
+        }
+        
+        .delete {
+          padding: 5px 10px;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+          background-color: #f44336;
+          color: white;
+        }
+
         
         @media (max-width: 550px) {
           body, html {
