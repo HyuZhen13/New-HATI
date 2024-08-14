@@ -162,15 +162,18 @@ class OrderData {
       const ordersData = ordersSnapshot.val();
       const allOrders = [];
 
+      // Iterasi melalui semua pesanan dan cocokkan dengan produk yang dijual
       Object.values(ordersData).forEach(userOrders => {
-        Object.values(userOrders).forEach(order => {
-          if (products) {
-            const matchingProducts = order.items.filter(item => products.find(product => product.id === item.id));
-            if (matchingProducts.length > 0) {
-              allOrders.push(order);
+        if (userOrders) { // Cek jika userOrders tidak undefined
+          Object.values(userOrders).forEach(order => {
+            if (order && order.items) { // Cek jika order dan order.items tidak undefined
+              const matchingProducts = order.items.filter(item => products.find(product => product.id === item.id));
+              if (matchingProducts.length > 0) {
+                allOrders.push(order);
+              }
             }
-          }
-        });
+          });
+        }
       });
       return allOrders;
     } catch (error) {
@@ -194,13 +197,17 @@ class OrderData {
 
       // Loop melalui pesanan untuk mengumpulkan semua productId
       Object.values(ordersData).forEach(userOrders => {
-        Object.values(userOrders).forEach(order => {
-          order.items.forEach(item => {
-            if (!productIds.includes(item.id)) {
-              productIds.push(item.id);
+        if (userOrders) { // Cek jika userOrders tidak undefined
+          Object.values(userOrders).forEach(order => {
+            if (order && order.items) { // Cek jika order dan order.items tidak undefined
+              order.items.forEach(item => {
+                if (item && !productIds.includes(item.id)) { // Cek jika item tidak undefined dan productId belum ditambahkan
+                  productIds.push(item.id);
+                }
+              });
             }
           });
-        });
+        }
       });
       return productIds;
     } catch (error) {
