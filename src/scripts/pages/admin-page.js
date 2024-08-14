@@ -776,7 +776,9 @@ const AdminPage = {
           `;
           const orderList = document.querySelector('#order-list-admin');
           try {
-            const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid); // Ambil data pesanan berdasarkan pengguna
+            const userId = UserInfo.getUserInfo().uid;
+            console.log('Fetching orders for user:', userId);
+            const orders = await OrderData.getOrders(userId); // Pastikan getOrders ada di OrderData
             if (orders && orders.length > 0) {
               orders.forEach((order) => {
                 order.items.forEach((item) => {
