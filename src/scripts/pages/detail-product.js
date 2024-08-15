@@ -117,9 +117,10 @@ const DetailProductPage = {
           const feedbackItem = document.createElement('div');
           feedbackItem.classList.add('feedback-item');
           feedbackItem.innerHTML = `
-            <p><strong>${feedback.userId}</strong></p>
+            <p><strong>${feedback.userName}</strong></p>
             <p>Rating: ${feedback.rating} / 5</p>
             <p>${feedback.comment}</p>
+            <p><small>Diberikan pada: ${new Date(feedback.timestamp).toLocaleString()}</small></p>
           `;
           feedbackList.appendChild(feedbackItem);
         });
