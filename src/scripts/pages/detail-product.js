@@ -62,6 +62,7 @@ const DetailProductPage = {
         price: product.price,
         quantity: 1, // default quantity to 1
         uid: product.uid,
+        userName: userInfo.name, // Tambahkan nama pengguna yang sedang login
       };
       
       if (product.stock > 0) {
