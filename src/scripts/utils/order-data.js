@@ -63,16 +63,21 @@ class OrderData {
     }
   }
 
-  // Menyimpan umpan balik produk
+  // Menyimpan umpan balik produk dengan nama pengguna dan timestamp
   static async saveProductFeedback(orderId, productId, rating, comment) {
     const db = getDatabase();
-    const userId = UserInfo.getUserInfo().uid;
+    const userInfo = UserInfo.getUserInfo();
+    const userId = userInfo.uid;
+    const userName = userInfo.name; // Mendapatkan nama pengguna
     const feedbackRef = ref(db, `product-feedback/${productId}/${userId}`);
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
+    const timestamp = new Date().toISOString(); // Menambahkan timestamp
+
     try {
-      // Menyimpan umpan balik
-      await set(feedbackRef, { rating, comment });
+      // Menyimpan umpan balik dengan nama pengguna dan timestamp
+      await set(feedbackRef, { userName, rating, comment, timestamp });
+
       // Memperbarui data pesanan
       const orderSnapshot = await get(orderRef);
       if (!orderSnapshot.exists()) {
@@ -84,6 +89,7 @@ class OrderData {
         const item = orderData.items[itemIndex];
         item.rating = rating;
         item.comment = comment;
+        item.timestamp = timestamp; // Menyimpan timestamp di item
         orderData.items[itemIndex] = item;
         // Update order data dan completed orders data
         await update(orderRef, { items: orderData.items });
