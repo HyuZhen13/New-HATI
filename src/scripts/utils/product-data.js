@@ -34,6 +34,7 @@ class ProductData {
       console.log(e.message);
     }
   }
+
   static async getProduct() {
     const dbRef = ref(getDatabase());
     try {
@@ -43,6 +44,7 @@ class ProductData {
       console.log(e.message);
     }
   }
+
   static async getProductById(id) {
     const dbRef = ref(getDatabase());
     try {
@@ -52,6 +54,7 @@ class ProductData {
       console.log(e.message);
     }
   }
+
   static async deleteProduct(id) {
     const dbRef = ref(getDatabase());
     try {
@@ -60,6 +63,7 @@ class ProductData {
       console.log(e.message);
     }
   }
+
   static async updateProduct(product, image) {
     const db = getDatabase();
     const storage = getStorage();
@@ -96,20 +100,28 @@ class ProductData {
 
   static async moveToOrderPage(orderItems, paymentProof) {
     const db = getDatabase();
-    const userId = UserInfo.getUserInfo().uid;
+    const userInfo = UserInfo.getUserInfo(); // Mendapatkan informasi pengguna
+    const userId = userInfo.uid;
+    const userName = userInfo.name; // Mendapatkan nama pengguna
     const orderId = Date.now();
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
 
     try {
+      // Tambahkan `userName` ke setiap item dalam orderItems
+      const updatedOrderItems = orderItems.map(item => ({
+        ...item,
+        userName, // Tambahkan nama pengguna yang memesan
+      }));
+
       await set(orderRef, {
         id: orderId,
-        items: orderItems,
+        items: updatedOrderItems,
         paymentProof,
         timestamp: new Date().toISOString(),
       });
 
-      // Update stock for each product
-      for (const order of orderItems) {
+      // Update stok untuk setiap produk
+      for (const order of updatedOrderItems) {
         const productRef = ref(db, `products/${order.id}`);
         const productSnapshot = await get(productRef);
         const productData = productSnapshot.val();
@@ -123,6 +135,7 @@ class ProductData {
       console.log(e.message);
     }
   }
+
   static async getOrders(userId) {
     const dbRef = ref(getDatabase());
     try {
@@ -133,4 +146,5 @@ class ProductData {
     }
   }
 }
+
 export default ProductData;
