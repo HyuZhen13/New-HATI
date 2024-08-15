@@ -7,20 +7,24 @@ import {
   getStorage, uploadBytes, ref as storageRef, getDownloadURL,
 } from 'firebase/storage';
 import UserInfo from './user-info';
+
 class CartData {
   static getCartItems() {
     return JSON.parse(localStorage.getItem('cart')) || [];
   }
+
   static addCartItem(item) {
     const cart = this.getCartItems();
     cart.push(item);
     localStorage.setItem('cart', JSON.stringify(cart));
   }
+
   static removeCartItem(id) {
     let cart = this.getCartItems();
     cart = cart.filter(item => item.id !== id);
     localStorage.setItem('cart', JSON.stringify(cart));
   }
+
   static updateCartItem(id, quantity) {
     const cart = this.getCartItems();
     const item = cart.find(i => i.id === id);
@@ -29,16 +33,20 @@ class CartData {
       localStorage.setItem('cart', JSON.stringify(cart));
     }
   }
+
   static setPaymentProof(url) {
     localStorage.setItem('paymentProof', url);
   }
+
   static getPaymentProof() {
     return localStorage.getItem('paymentProof');
   }
+
   static clearCart() {
     localStorage.removeItem('cart');
     localStorage.removeItem('paymentProof');
   }
+
   static async uploadPaymentProof(file) {
     const userId = UserInfo.getUserInfo().uid;
     const storage = getStorage();
@@ -53,9 +61,12 @@ class CartData {
       throw error;
     }
   }
+
   static async moveToOrderPage() {
     const db = getDatabase();
-    const userId = UserInfo.getUserInfo().uid;
+    const userInfo = UserInfo.getUserInfo();
+    const userId = userInfo.uid;
+    const userName = userInfo.name; // Mengambil nama pengguna
     const orderId = Date.now();
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const cartItems = this.getCartItems();
@@ -71,6 +82,7 @@ class CartData {
         items: cartItems,
         paymentProof: paymentProof,
         timestamp: new Date().toISOString(),
+        userName: userName, // Menyimpan nama pengguna
       });
 
       // Memperbarui stok untuk setiap produk
@@ -115,4 +127,5 @@ class CartData {
     }
   }
 }
+
 export default CartData;
