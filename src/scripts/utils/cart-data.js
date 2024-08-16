@@ -15,7 +15,15 @@ class CartData {
 
   static addCartItem(item) {
     const cart = this.getCartItems();
-    cart.push(item);
+    // Periksa apakah item sudah ada di keranjang
+    const existingItem = cart.find(i => i.id === item.id);
+    if (existingItem) {
+      // Jika item sudah ada, perbarui jumlahnya
+      existingItem.quantity += item.quantity;
+    } else {
+      // Jika tidak, tambahkan item baru
+      cart.push(item);
+    }
     localStorage.setItem('cart', JSON.stringify(cart));
   }
 
