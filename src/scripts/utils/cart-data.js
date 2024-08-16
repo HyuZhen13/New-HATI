@@ -6,7 +6,7 @@ import {
 import {
   getStorage, uploadBytes, ref as storageRef, getDownloadURL,
 } from 'firebase/storage';
-import UserInfo from './user-info';
+import UserInfo from './user-info'; // Pastikan ini diimpor
 
 class CartData {
   static getCartItems() {
