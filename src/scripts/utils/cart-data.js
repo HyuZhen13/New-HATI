@@ -15,13 +15,10 @@ class CartData {
 
   static addCartItem(item) {
     const cart = this.getCartItems();
-    // Periksa apakah item sudah ada di keranjang
     const existingItem = cart.find(i => i.id === item.id);
     if (existingItem) {
-      // Jika item sudah ada, perbarui jumlahnya
       existingItem.quantity += item.quantity;
     } else {
-      // Jika tidak, tambahkan item baru
       cart.push(item);
     }
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -56,14 +53,19 @@ class CartData {
   }
 
   static async uploadPaymentProof(file) {
-    const userId = UserInfo.getUserInfo().uid;
+    const userInfo = UserInfo.getUserInfo();
+    if (!userInfo || !userInfo.uid) {
+      console.error('Pengguna tidak valid:', userInfo); // Log detail dari userInfo jika tidak valid
+      throw new Error('Pengguna tidak valid, tidak dapat mengunggah bukti pembayaran.');
+    }
+
     const storage = getStorage();
-    const storageReference = storageRef(storage, `payment-proof/${userId}/${file.name}`);
+    const storageReference = storageRef(storage, `payment-proof/${userInfo.uid}/${file.name}`);
     try {
       const uploadTask = await uploadBytes(storageReference, file);
       const url = await getDownloadURL(uploadTask.ref);
       this.setPaymentProof(url);
-      return url; // Kembalikan URL untuk digunakan lebih lanjut jika diperlukan
+      return url;
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
@@ -76,33 +78,37 @@ class CartData {
     
     // Validasi data userInfo sebelum digunakan
     if (!userInfo || !userInfo.uid || !userInfo.name) {
+      console.error('Informasi pengguna tidak valid:', userInfo); // Log detail dari userInfo jika tidak valid
+      alert('Informasi pengguna tidak valid. Silakan periksa login Anda.');
       throw new Error('Informasi pengguna tidak valid.');
     }
-    
+
     const userId = userInfo.uid;
-    const userName = userInfo.name; // Mengambil nama pengguna dan pastikan terdefinisi
+    const userName = userInfo.name;
     const orderId = Date.now();
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const cartItems = this.getCartItems();
     const paymentProof = this.getPaymentProof();
-    
+
     if (!cartItems.length) {
       throw new Error('Keranjang belanja kosong.');
     }
 
     try {
-      // Pastikan userName dan cartItems memiliki data yang benar sebelum set order
       if (!userName) {
         throw new Error('Nama pengguna tidak ditemukan.');
       }
-      
-      // Menyimpan pesanan
+
+      // Log untuk memastikan data yang akan disimpan sudah benar
+      console.log('Menyimpan pesanan untuk pengguna:', userName);
+      console.log('Data pesanan:', cartItems);
+
       await set(orderRef, {
         id: orderId,
         items: cartItems,
         paymentProof: paymentProof,
         timestamp: new Date().toISOString(),
-        userName: userName, // Pastikan userName tidak undefined
+        userName: userName,
       });
 
       // Memperbarui stok untuk setiap produk
@@ -126,7 +132,7 @@ class CartData {
       this.clearCart();
     } catch (e) {
       console.log(e.message);
-      throw e; // Rethrow error to be handled by the calling function
+      throw e;
     }
   }
 
