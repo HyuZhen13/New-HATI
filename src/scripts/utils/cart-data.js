@@ -65,24 +65,36 @@ class CartData {
   static async moveToOrderPage() {
     const db = getDatabase();
     const userInfo = UserInfo.getUserInfo();
+    
+    // Validasi data userInfo sebelum digunakan
+    if (!userInfo || !userInfo.uid || !userInfo.name) {
+      throw new Error('Informasi pengguna tidak valid.');
+    }
+    
     const userId = userInfo.uid;
-    const userName = userInfo.name; // Mengambil nama pengguna
+    const userName = userInfo.name; // Mengambil nama pengguna dan pastikan terdefinisi
     const orderId = Date.now();
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const cartItems = this.getCartItems();
     const paymentProof = this.getPaymentProof();
+    
     if (!cartItems.length) {
       throw new Error('Keranjang belanja kosong.');
     }
 
     try {
+      // Pastikan userName dan cartItems memiliki data yang benar sebelum set order
+      if (!userName) {
+        throw new Error('Nama pengguna tidak ditemukan.');
+      }
+      
       // Menyimpan pesanan
       await set(orderRef, {
         id: orderId,
         items: cartItems,
         paymentProof: paymentProof,
         timestamp: new Date().toISOString(),
-        userName: userName, // Menyimpan nama pengguna
+        userName: userName, // Pastikan userName tidak undefined
       });
 
       // Memperbarui stok untuk setiap produk
