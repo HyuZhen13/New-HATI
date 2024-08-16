@@ -1,5 +1,4 @@
 import CartData from '../utils/cart-data';
-import UserInfo from '../utils/user-info';
 
 const CartPage = {
   async render() {
@@ -21,6 +20,13 @@ const CartPage = {
     const checkoutButton = document.querySelector('#checkout');
     const paymentProofInput = document.querySelector('#payment-proof');
     let totalPrice = 0;
+
+    // Mendapatkan informasi username dari CartData
+    const userName = CartData.getUserName();
+    if (!userName) {
+      alert('Gagal memuat informasi pengguna. Silakan coba lagi.');
+      return;
+    }
 
     cartItems.forEach(item => {
       const cartItem = document.createElement('div');
@@ -55,6 +61,7 @@ const CartPage = {
     });
 
     totalPriceContainer.innerHTML = `Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}`;
+    
     paymentProofInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -70,12 +77,11 @@ const CartPage = {
     checkoutButton.addEventListener('click', async () => {
       const paymentProof = CartData.getPaymentProof();
       if (paymentProof) {
-        // Konfirmasi sebelum melanjutkan checkout
         const userConfirmed = window.confirm("Pastikan Anda sudah menghubungi penjual sebelum checkout. Apakah Anda sudah konfirmasi ke penjual melalui WhatsApp?");
 
         if (userConfirmed) {
           try {
-            await CartData.moveToOrderPage();
+            await CartData.moveToOrderPage(userName);
             location.href = '#/order';
           } catch (error) {
             alert('Gagal melakukan checkout: ' + error.message);
