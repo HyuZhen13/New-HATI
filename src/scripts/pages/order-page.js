@@ -2,17 +2,6 @@ import UserInfo from '../utils/user-info';
 import OrderData from '../utils/order-data';
 
 const OrderPage = {
-  // Method untuk menangani penyimpanan umpan balik
-  static async handleSaveFeedback(orderId, productId, rating, comment) {
-    try {
-      await OrderData.saveProductFeedback(orderId, productId, rating, comment);
-      console.log('Umpan balik berhasil disimpan');
-    } catch (error) {
-      console.error('Gagal menyimpan umpan balik:', error);
-      alert('Gagal menyimpan umpan balik: ' + error.message);
-    }
-  },
-
   // Menghasilkan HTML dasar untuk halaman pesanan
   async render() {
     return `
@@ -55,22 +44,29 @@ const OrderPage = {
               <h4>${item.name}</h4>
               <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
               <p>Jumlah: ${item.quantity}</p>
-              <textarea id="comment-${item.id}" class="comment-input" placeholder="Tulis komentar..."></textarea>
-              <input type="number" id="rating-${item.id}" class="rating-input" min="1" max="5" placeholder="Rating (1-5)" />
-              <button id="feedback-button-${item.id}" data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
+              <textarea class="comment-input" placeholder="Tulis komentar..."></textarea>
+              <input type="number" class="rating-input" min="1" max="5" placeholder="Rating (1-5)" />
+              <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
             `;
             orderItemsContainer.appendChild(orderItem);
 
-            const feedbackButton = orderItem.querySelector(`#feedback-button-${item.id}`);
-            feedbackButton.addEventListener('click', async () => {
-              const rating = orderItem.querySelector(`#rating-${item.id}`).value;
-              const comment = orderItem.querySelector(`#comment-${item.id}`).value;
+            const saveFeedbackButton = orderItem.querySelector('.save-feedback-button');
+            saveFeedbackButton.addEventListener('click', async () => {
+              const rating = orderItem.querySelector('.rating-input').value;
+              const comment = orderItem.querySelector('.comment-input').value;
 
               if (rating && comment) {
-                await OrderPage.handleSaveFeedback(order.id, item.id, rating, comment);
-                // Pindahkan pesanan ke completed-orders dan reload halaman
-                await OrderData.completeOrder();
-                location.reload();
+                try {
+                  await OrderData.saveProductFeedback(order.id, item.id, rating, comment);
+                  console.log('Rating dan komentar berhasil disimpan.');
+
+                  // Pindahkan pesanan ke completed-orders dan reload halaman
+                  await OrderData.completeOrder();
+                  location.reload();
+                } catch (error) {
+                  console.error('Gagal menyimpan rating dan komentar:', error);
+                  alert('Gagal menyimpan rating dan komentar: ' + error.message);
+                }
               } else {
                 alert('Silakan isi rating dan komentar.');
               }
@@ -92,6 +88,7 @@ const OrderPage = {
   async renderCompletedOrders() {
     const completedOrdersContainer = document.querySelector('#completed-orders');
     const userId = UserInfo.getUserInfo().uid;
+
     try {
       const orders = await OrderData.getCompletedOrders(userId);
       if (orders.length > 0) {
@@ -116,6 +113,7 @@ const OrderPage = {
             <button data-id="${order.id}" class="delete-order-button">Hapus Pesanan</button>
           `;
           completedOrdersContainer.appendChild(orderElement);
+
           const deleteOrderButton = orderElement.querySelector('.delete-order-button');
           deleteOrderButton.addEventListener('click', async () => {
             try {
