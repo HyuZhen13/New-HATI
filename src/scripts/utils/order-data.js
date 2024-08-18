@@ -1,6 +1,5 @@
 import { getDatabase, ref, set, update, get, remove } from 'firebase/database';
 import UserInfo from './user-info';
-
 class OrderData {
   // Mengambil pesanan terkini pengguna
   static async getCurrentOrder() {
@@ -27,7 +26,6 @@ class OrderData {
       throw error;
     }
   }
-
   // Menyelesaikan pesanan terkini pengguna
   static async completeOrder() {
     const db = getDatabase();
@@ -63,45 +61,44 @@ class OrderData {
     }
   }
 
-  // Menyimpan umpan balik produk dengan nama pengguna dan timestamp
-  static async saveProductFeedback(orderId, productId, rating, comment) {
+// Menyimpan umpan balik produk
+static async saveProductFeedback(orderId, productId, rating, comment) {
     const db = getDatabase();
-    const userInfo = UserInfo.getUserInfo();
-    const userId = userInfo.uid;
-    const userName = userInfo.name; // Mendapatkan nama pengguna
+    const userId = UserInfo.getUserInfo().uid;
+    const userName = UserInfo.getUserInfo().name; // Mendapatkan username dari UserInfo
     const feedbackRef = ref(db, `product-feedback/${productId}/${userId}`);
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
-    const timestamp = new Date().toISOString(); // Menambahkan timestamp
 
     try {
-      // Menyimpan umpan balik dengan nama pengguna dan timestamp
-      await set(feedbackRef, { userName, rating, comment, timestamp });
+        // Menyimpan umpan balik dengan menambahkan username
+        await set(feedbackRef, { userName, rating, comment });
+        
+        // Memperbarui data pesanan
+        const orderSnapshot = await get(orderRef);
+        if (!orderSnapshot.exists()) {
+            throw new Error('Pesanan tidak ditemukan.');
+        }
+        const orderData = orderSnapshot.val();
+        const itemIndex = orderData.items.findIndex(item => item.id === productId);
+        if (itemIndex > -1) {
+            const item = orderData.items[itemIndex];
+            item.rating = rating;
+            item.comment = comment;
+            item.userName = userName; // Simpan username di data pesanan
+            orderData.items[itemIndex] = item;
 
-      // Memperbarui data pesanan
-      const orderSnapshot = await get(orderRef);
-      if (!orderSnapshot.exists()) {
-        throw new Error('Pesanan tidak ditemukan.');
-      }
-      const orderData = orderSnapshot.val();
-      const itemIndex = orderData.items.findIndex(item => item.id === productId);
-      if (itemIndex > -1) {
-        const item = orderData.items[itemIndex];
-        item.rating = rating;
-        item.comment = comment;
-        item.timestamp = timestamp; // Menyimpan timestamp di item
-        orderData.items[itemIndex] = item;
-        // Update order data dan completed orders data
-        await update(orderRef, { items: orderData.items });
-        await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
-      } else {
-        throw new Error('Produk tidak ditemukan dalam pesanan.');
-      }
+            // Update order data dan completed orders data
+            await update(orderRef, { items: orderData.items });
+            await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
+        } else {
+            throw new Error('Produk tidak ditemukan dalam pesanan.');
+        }
     } catch (error) {
-      console.error('Error saving feedback:', error);
-      throw error;
+        console.error('Error saving feedback:', error);
+        throw error;
     }
-  }
+}
 
   // Mengambil umpan balik produk
   static async getProductFeedback(productId) {
@@ -124,7 +121,6 @@ class OrderData {
       throw error;
     }
   }
-
   // Mengambil pesanan yang telah selesai
   static async getCompletedOrders(userId) {
     const db = getDatabase();
@@ -140,7 +136,6 @@ class OrderData {
       throw error;
     }
   }
-
   // Menghapus pesanan yang telah selesai
   static async deleteCompletedOrder(orderId) {
     const db = getDatabase();
@@ -153,7 +148,6 @@ class OrderData {
       throw error;
     }
   }
-
   // Mengambil pesanan berdasarkan produk yang dijual
   static async getOrdersByProducts(products) {
     const db = getDatabase();
@@ -165,7 +159,6 @@ class OrderData {
       }
       const ordersData = ordersSnapshot.val();
       const allOrders = [];
-
       // Iterasi melalui semua pesanan dan cocokkan dengan produk yang dijual
       Object.values(ordersData).forEach(userOrders => {
         if (userOrders) { // Cek jika userOrders tidak undefined
@@ -185,12 +178,10 @@ class OrderData {
       throw error;
     }
   }
-
   // Fungsi untuk mendapatkan daftar ID produk dari semua pesanan
   static async getProductIds() {
     const db = getDatabase();
     const ordersRef = ref(db, 'orders');
-
     try {
       const ordersSnapshot = await get(ordersRef);
       if (!ordersSnapshot.exists()) {
@@ -198,7 +189,6 @@ class OrderData {
       }
       const ordersData = ordersSnapshot.val();
       const productIds = [];
-
       // Loop melalui pesanan untuk mengumpulkan semua productId
       Object.values(ordersData).forEach(userOrders => {
         if (userOrders) { // Cek jika userOrders tidak undefined
@@ -219,7 +209,6 @@ class OrderData {
       throw error;
     }
   }
-
   // Fungsi baru untuk mengambil semua pesanan pengguna
   static async getOrders(userId) {
     const db = getDatabase();
@@ -236,5 +225,4 @@ class OrderData {
     }
   }
 }
-
 export default OrderData;
