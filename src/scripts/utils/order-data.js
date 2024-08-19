@@ -61,45 +61,39 @@ class OrderData {
     }
   }
 
-// Menyimpan umpan balik produk
-static async saveProductFeedback(orderId, productId, rating, comment) {
+  // Menyimpan umpan balik produk
+  static async saveProductFeedback(orderId, productId, rating, comment) {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
-    const userName = UserInfo.getUserInfo().name; // Mendapatkan username dari UserInfo
     const feedbackRef = ref(db, `product-feedback/${productId}/${userId}`);
     const orderRef = ref(db, `orders/${userId}/${orderId}`);
     const completedOrdersRef = ref(db, `completed-orders/${userId}`);
-
     try {
-        // Menyimpan umpan balik dengan menambahkan username
-        await set(feedbackRef, { userName, rating, comment });
-        
-        // Memperbarui data pesanan
-        const orderSnapshot = await get(orderRef);
-        if (!orderSnapshot.exists()) {
-            throw new Error('Pesanan tidak ditemukan.');
-        }
-        const orderData = orderSnapshot.val();
-        const itemIndex = orderData.items.findIndex(item => item.id === productId);
-        if (itemIndex > -1) {
-            const item = orderData.items[itemIndex];
-            item.rating = rating;
-            item.comment = comment;
-            item.userName = userName; // Simpan username di data pesanan
-            orderData.items[itemIndex] = item;
-
-            // Update order data dan completed orders data
-            await update(orderRef, { items: orderData.items });
-            await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
-        } else {
-            throw new Error('Produk tidak ditemukan dalam pesanan.');
-        }
+      // Menyimpan umpan balik
+      await set(feedbackRef, { rating, comment });
+      // Memperbarui data pesanan
+      const orderSnapshot = await get(orderRef);
+      if (!orderSnapshot.exists()) {
+        throw new Error('Pesanan tidak ditemukan.');
+      }
+      const orderData = orderSnapshot.val();
+      const itemIndex = orderData.items.findIndex(item => item.id === productId);
+      if (itemIndex > -1) {
+        const item = orderData.items[itemIndex];
+        item.rating = rating;
+        item.comment = comment;
+        orderData.items[itemIndex] = item;
+        // Update order data dan completed orders data
+        await update(orderRef, { items: orderData.items });
+        await update(ref(db, `completed-orders/${userId}/${orderId}`), { ...orderData });
+      } else {
+        throw new Error('Produk tidak ditemukan dalam pesanan.');
+      }
     } catch (error) {
-        console.error('Error saving feedback:', error);
-        throw error;
+      console.error('Error saving feedback:', error);
+      throw error;
     }
-}
-
+  }
   // Mengambil umpan balik produk
   static async getProductFeedback(productId) {
     const db = getDatabase();
