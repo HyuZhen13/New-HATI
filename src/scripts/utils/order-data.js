@@ -140,8 +140,21 @@ class OrderData {
     const db = getDatabase();
     const userId = UserInfo.getUserInfo().uid;
     const orderRef = ref(db, `completed-orders/${userId}/${orderId}`);
+    const orderSnapshot = await get(orderRef);
+    
     try {
-      await remove(orderRef);
+      if (orderSnapshot.exists()) {
+        const orderData = orderSnapshot.val();
+        // Menghapus umpan balik terkait produk
+        for (const item of orderData.items) {
+          const feedbackRef = ref(db, `product-feedback/${item.id}/${userId}`);
+          await remove(feedbackRef);
+        }
+        // Menghapus pesanan dari completed-orders
+        await remove(orderRef);
+      } else {
+        throw new Error('Pesanan tidak ditemukan.');
+      }
     } catch (error) {
       console.error('Error deleting completed order:', error);
       throw error;
