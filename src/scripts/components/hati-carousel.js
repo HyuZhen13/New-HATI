@@ -6,6 +6,15 @@ class hatiCarousel extends HTMLElement {
   render() {
     /* html */
     this.innerHTML = `
+        <style>
+        /* Media query untuk layar dengan lebar kurang dari 400px */
+        @media (max-width: 400px) {
+          .map-iframe {
+            width: 300px;
+            height: 150px;
+          }
+        }
+      </style>
     <div id="carouselExampleCaptions" class="carousel slide">
       <div class="carousel-indicators">
         <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
