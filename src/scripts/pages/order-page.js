@@ -8,7 +8,7 @@ const OrderPage = {
       <div class="order-page">
         <h1>Detail Pesanan</h1>
         <div id="order-details" class="order-details"></div>
-        <h1>Pesanan Selesai</h1>
+        <h1> Riwayat Feedback Pesanan </h1>
         <div id="completed-orders" class="completed-orders"></div>
       </div>
     `;
@@ -75,7 +75,7 @@ const OrderPage = {
           orderItemsContainer.innerHTML = '<p>Tidak ada barang dalam pesanan ini.</p>';
         }
       } else {
-        orderDetailsContainer.innerHTML = '<p>Tidak ada pesanan yang sedang diproses.</p>';
+        orderDetailsContainer.innerHTML = '<p>Tidak ada pesanan yang perlu dinilai.</p>';
       }
     } catch (error) {
       console.error('Error fetching current order:', error);
@@ -83,7 +83,7 @@ const OrderPage = {
     }
   },
 
-  // Merender pesanan yang telah selesai
+  // Merender pesanan yang telah selesai dinilai
   async renderCompletedOrders() {
     const completedOrdersContainer = document.querySelector('#completed-orders');
     const userId = UserInfo.getUserInfo().uid;
@@ -109,7 +109,7 @@ const OrderPage = {
                 </div>
               `).join('')}
             </div>
-            <button data-id="${order.id}" class="delete-order-button">Hapus Pesanan</button>
+            <button data-id="${order.id}" class="delete-order-button">Hapus Riwayat</button>
           `;
           completedOrdersContainer.appendChild(orderElement);
 
