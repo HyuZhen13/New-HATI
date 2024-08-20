@@ -3,7 +3,6 @@ import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import CartData from '../utils/cart-data';
 import OrderData from '../utils/order-data';
-import UserInfo from '../utils/user-info';
 
 const DetailProductPage = {
   async render() {
@@ -34,7 +33,6 @@ const DetailProductPage = {
     const product = await ProductData.getProductById(url.id);
     const productAll = await ProductData.getProduct();
     const store = await UserData.getUserData(product.uid);
-
 
     const productDetailContainer = document.querySelector('#product-detail-container');
     const storeDetail = document.querySelector('#store-detail');
@@ -70,7 +68,6 @@ const DetailProductPage = {
         price: product.price,
         quantity: 1, // default quantity to 1
         uid: product.uid,
-        userName: userInfo.name, // Menggunakan nama pengguna yang sedang login
       };
 
       if (product.stock > 0) {
