@@ -26,7 +26,7 @@ class hatiCarousel extends HTMLElement {
           <img src="./Images/hati.png" class="d-block w-100" alt="...">
           <div class="carousel-caption d-none d-md-block">
           </div>
-        </div>
+        </div>  
         <div class="carousel-item">
            <iframe
             class="map-iframe"
@@ -39,6 +39,11 @@ class hatiCarousel extends HTMLElement {
             referrerpolicy="no-referrer-when-downgrade">
           </iframe>
           <div class="carousel-caption d-none d-md-block">
+          </div>
+          <div class="carousel-item active">
+            <img src="./Images/hati.png" class="d-block w-100" alt="...">
+            <div class="carousel-caption d-none d-md-block">
+            </div>
           </div>
         </div>
       </div>
