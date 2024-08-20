@@ -122,7 +122,7 @@ const DetailProductPage = {
     }
     // Menambahkan bagian untuk menampilkan komentar dan rating produk
     try {
-      const feedbacks = await OrderData.getProductFeedback(productId);
+      const feedbacks = await OrderData.getProductFeedback(product.id);
       if (feedbacks.length > 0) {
         feedbacks.forEach(feedback => {
           const feedbackItem = document.createElement('div');
