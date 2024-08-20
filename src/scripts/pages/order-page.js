@@ -1,5 +1,6 @@
 import UserInfo from '../utils/user-info';
 import OrderData from '../utils/order-data';
+
 const OrderPage = {
   // Menghasilkan HTML dasar untuk halaman pesanan
   async render() {
@@ -12,19 +13,21 @@ const OrderPage = {
       </div>
     `;
   },
+
   // Memanggil fungsi render untuk pesanan saat ini dan pesanan yang selesai setelah halaman dimuat
   async afterRender() {
     await this.renderCurrentOrder();
     await this.renderCompletedOrders();
   },
+
   // Merender pesanan saat ini
   async renderCurrentOrder() {
     const orderDetailsContainer = document.querySelector('#order-details');
     const userId = UserInfo.getUserInfo().uid;
-    try {
-      const order = await OrderData.getCurrentOrder();
-      if (order) {
 
+    try {
+      const order = await OrderData.getCurrentOrder(userId);
+      if (order) {
         orderDetailsContainer.innerHTML = `
           <h2>Pesanan Anda</h2>
           <img src="${order.paymentProof}" alt="Bukti Pembayaran">
@@ -57,7 +60,7 @@ const OrderPage = {
                   console.log('Rating dan komentar berhasil disimpan.');
 
                   // Pindahkan pesanan ke completed-orders dan reload halaman
-                  await OrderData.completeOrder();
+                  await OrderData.completeOrder(order.id);
                   location.reload();
                 } catch (error) {
                   console.error('Gagal menyimpan rating dan komentar:', error);
@@ -79,10 +82,12 @@ const OrderPage = {
       orderDetailsContainer.innerHTML = '<p>Gagal memuat detail pesanan.</p>';
     }
   },
+
   // Merender pesanan yang telah selesai
   async renderCompletedOrders() {
     const completedOrdersContainer = document.querySelector('#completed-orders');
     const userId = UserInfo.getUserInfo().uid;
+
     try {
       const orders = await OrderData.getCompletedOrders(userId);
       if (orders.length > 0) {
@@ -107,6 +112,7 @@ const OrderPage = {
             <button data-id="${order.id}" class="delete-order-button">Hapus Pesanan</button>
           `;
           completedOrdersContainer.appendChild(orderElement);
+
           const deleteOrderButton = orderElement.querySelector('.delete-order-button');
           deleteOrderButton.addEventListener('click', async () => {
             try {
@@ -128,4 +134,5 @@ const OrderPage = {
     }
   }
 };
+
 export default OrderPage;
