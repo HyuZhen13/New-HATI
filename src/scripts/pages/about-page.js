@@ -153,18 +153,18 @@ const AboutPage = {
  
     <div class="container">
       <h1>Tentang Kami</h1>
-      <p class="top">Proyek Website Pertanian yang kami beri nama <span class="highlight">HATI (Hasil Tani)</span> bertujuan untuk menjadi platform modern bagi para petani dan pecinta pertanian. Dalam platform ini, kami menyediakan fitur yang menarik seperti Marketplace dan Berita Pertanian Terkini.</p>
+      <p class="top">Proyek Website Pertanian Kelompok Tani Sri Rahayu 3 Desa Gemuruh - Kabupaten Purbalingga yang kami beri nama <span class="highlight">HATI (Hasil Tani)</span> bertujuan untuk menjadi platform modern bagi para petani dan pecinta pertanian. Dalam platform ini, kami menyediakan fitur yang menarik seperti Marketplace dan Berita Pertanian Terkini.</p>
       
       <div class="features">
         <div class="feature">
           <img class="lazyload" crossorigin="anonymous" src="./Images/marketplace-icon.png" alt="Marketplace Icon" onclick="window.location.href='#/marketplace'">
           <div class="feature-text">
             <h2 class="feature-title">Marketplace</h2>
-            <p class="feature-description">Kami menyediakan platform online yang mempertumakan para petani dan pembeli. Melalui platform kami, Anda dapat menjual dan mencari produk hasil pertanian secara luas baik dalam negeri maupun luar negeri.</p>
+            <p class="feature-description">Kami menyediakan platform online yang mempertumakan para petani dan pelanggan. Melalui platform kami, Anda dapat mempromosikan dan mencari produk hasil pertanian segar yang langsung berasal dari para petani.</p>
           </div>
         </div>
         <div class="feature">
-          <img class="lazyload" crossorigin="anonymous" src="./Images/news-icon.png" alt="News Icon" onclick="window.location.href='#/'">
+          <img class="lazyload" crossorigin="anonymous" src="./Images/news-icon.png" alt="News Icon" onclick="window.location.href='#/home'">
           <div class="feature-text">
             <h2 class="feature-title">Berita Pertanian Terkini</h2>
             <p class="feature-description">Kami juga menyajikan berita terkini seputar dunia pertanian. Dapatkan informasi terbaru mengenai produk hasil pertanian, teknik pertanian terbaru, dan berita pertanian menarik lainnya.</p>
