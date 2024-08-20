@@ -26,6 +26,12 @@ class hatiNav extends HTMLElement {
                   <a class="nav-link active" href="#/marketplace">Marketplace</a>
                 </li>
                 <li class="nav-item">
+                  <a class="nav-link active" href="#/cart">Keranjang</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="#/order">Pesanan</a>
+                </li>
+                <li class="nav-item">
                   <a class="nav-link active" href="#/about">About Us</a>
                 </li>
               </ul>
@@ -58,6 +64,12 @@ class hatiNav extends HTMLElement {
                 </li>
                 <li class="nav-item">
                   <a class="nav-link active" href="#/marketplace">Marketplace</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="#/cart">Keranjang</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="#/order">Pesanan</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link active" href="#/about">About Us</a>
