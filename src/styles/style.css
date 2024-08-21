@@ -39,7 +39,6 @@ html {
 
 .bukti-pembayaran img {
   max-width: 400px;
-  width: 100%;
 }
 
 @media (max-width: 400px) {
