@@ -37,6 +37,17 @@ html {
   background-color: #1B9C85;
 }
 
+.image-bukti-pembayaran {
+  max-width: 400px;
+  width: 100%;
+}
+
+@media (max-width: 400px) {
+  .image-bukti-pembayaran {
+    max-width: 250px;
+  }
+}
+
 /* CartPage Styles */
 /* CartPage Styles */
 .cart-page {
