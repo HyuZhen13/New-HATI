@@ -30,7 +30,7 @@ const OrderPage = {
       if (order) {
         orderDetailsContainer.innerHTML = `
           <h2>Pesanan Anda</h2>
-          <img src="${order.paymentProof}" alt="Bukti Pembayaran" class="bukti-pembayaran">
+          <img src="${order.paymentProof}" alt="Bukti Pembayaran" class="bukti-pembayaran img-fluid" style="max-width: 300px; max-height: auto;">
           <div id="order-items"></div>
         `;
         const orderItemsContainer = document.querySelector('#order-items');
@@ -96,7 +96,7 @@ const OrderPage = {
           orderElement.classList.add('order');
           orderElement.innerHTML = `
             <h2>Pesanan Selesai - ${order.id}</h2>
-            <img src="${order.paymentProof}" alt="Bukti Pembayaran" class="bukti-pembayaran">
+            <img src="${order.paymentProof}" alt="Bukti Pembayaran" class="bukti-pembayaran img-fluid" style="max-width: 300px; max-height: auto;">
             <div class="order-items">
               ${order.items.map(item => `
                 <div class="order-item">
