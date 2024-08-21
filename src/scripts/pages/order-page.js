@@ -8,6 +8,7 @@ const OrderPage = {
       <div class="order-page">
         <h1>Detail Pesanan</h1>
         <div id="order-details" class="order-details"></div>
+        <br/>
         <h1> Riwayat Feedback Pesanan </h1>
         <div id="completed-orders" class="completed-orders"></div>
       </div>
@@ -29,7 +30,7 @@ const OrderPage = {
       const order = await OrderData.getCurrentOrder(userId);
       if (order) {
         orderDetailsContainer.innerHTML = `
-          <h2>Pesanan Anda</h2>
+          <h2>Pesanan Perlu Dinilai</h2>
           <img src="${order.paymentProof}" alt="Bukti Pembayaran" class="bukti-pembayaran img-fluid" style="max-width: 300px; max-height: auto;">
           <div id="order-items"></div>
         `;
@@ -45,7 +46,7 @@ const OrderPage = {
               <p>Jumlah: ${item.quantity}</p>
               <textarea class="comment-input" placeholder="Tulis komentar..."></textarea>
               <input type="number" class="rating-input" min="1" max="5" placeholder="Rating (1-5)" />
-              <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button">Simpan Rating dan Komentar</button>
+              <button data-id="${item.id}" data-order-id="${order.id}" class="save-feedback-button btn btn-primary btn-sm rounded-pill px-4 py-2">Simpan Rating dan Komentar</button>
             `;
             orderItemsContainer.appendChild(orderItem);
 
@@ -95,7 +96,7 @@ const OrderPage = {
           const orderElement = document.createElement('div');
           orderElement.classList.add('order');
           orderElement.innerHTML = `
-            <h2>Pesanan Selesai - ${order.id}</h2>
+            <h2>Pesanan - ${order.id}</h2>
             <img src="${order.paymentProof}" alt="Bukti Pembayaran" class="bukti-pembayaran img-fluid" style="max-width: 300px; max-height: auto;">
             <div class="order-items">
               ${order.items.map(item => `
@@ -109,7 +110,8 @@ const OrderPage = {
                 </div>
               `).join('')}
             </div>
-            <button data-id="${order.id}" class="delete-order-button">Hapus Riwayat</button>
+            <button data-id="${order.id}" class="delete-order-button btn btn-danger btn-sm rounded-pill px-4 py-2">Hapus Riwayat</button>
+
           `;
           completedOrdersContainer.appendChild(orderElement);
 
