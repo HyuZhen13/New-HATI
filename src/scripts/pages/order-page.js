@@ -100,7 +100,7 @@ const OrderPage = {
             <div class="order-items">
               ${order.items.map(item => `
                 <div class="order-item">
-                  <img src="${item.image}" alt="${item.name}">
+                  <img src="${item.image}" alt="${item.name}" class="image-bukti-pembayaran">
                   <h4>${item.name}</h4>
                   <p>${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
                   <p>Jumlah: ${item.quantity}</p>
