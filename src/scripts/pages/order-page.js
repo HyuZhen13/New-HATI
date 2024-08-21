@@ -31,7 +31,7 @@ const OrderPage = {
       if (order) {
         orderDetailsContainer.innerHTML = `
           <h2>Pesanan Perlu Dinilai</h2>
-          <img src="${order.paymentProof}" alt="Bukti Pembayaran" class="bukti-pembayaran img-fluid" style="max-width: 300px; max-height: auto;">
+          <img src="${order.paymentProof}" alt="Bukti Pembayaran" class="bukti-pembayaran img-fluid" style="max-width: 330px; max-height: auto;">
           <div id="order-items"></div>
         `;
         const orderItemsContainer = document.querySelector('#order-items');
