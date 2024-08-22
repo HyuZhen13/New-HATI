@@ -328,7 +328,7 @@ const AdminPage = {
           <ul class="menu-list">
             <li class="menu-item" id="menuBerita">Berita</li>
             <li class="menu-item" id="menuVerifikasi">Verifikasi</li>
-            <li class="menu-item" id="menuToko">Toko</li>
+            <li class="menu-item" id="menuToko">User</li>
             <li class="menu-item" id="menuProduk">Produk</li>
           </ul>
         </div>
@@ -345,7 +345,7 @@ const AdminPage = {
                   <p id="verifikasi-count" style="font-size: 50pt;">0</p>
                 </div>
                 <div class="product-item">
-                  <p class="product-name">Toko</p>
+                  <p class="product-name">User</p>
                   <p id="toko-count" style="font-size: 50pt;">0</p>
                 </div>
                 <div class="product-item">
@@ -667,7 +667,7 @@ const AdminPage = {
             parentElement.removeChild(parentElement.firstChild);
           }
           contentContainer.innerHTML = `
-          <h2>Toko</h2>
+          <h2>User</h2>
           <div class="product-list" id="product-list-admin">
             
           </div>
