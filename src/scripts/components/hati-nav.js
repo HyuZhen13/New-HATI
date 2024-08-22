@@ -30,7 +30,7 @@ class hatiNav extends HTMLElement {
                     <li><a class="dropdown-item" href="#/marketplace">Marketplace</a></li>
                     <li><a class="dropdown-item" href="#/cart">Keranjang</a></li>
                     <li><a class="dropdown-item" href="#/order">Pesanan</a></li>
-                    <li><a class="dropdown-item" href="#/news">Berita</a></li>
+                    <li><a class="dropdown-item" href="#/home" onclick="scrollToNews()">Berita</a></li>
                   </ul>
                 </li>
                 <li class="nav-item">
@@ -39,7 +39,7 @@ class hatiNav extends HTMLElement {
               </ul>
               <form class="d-flex" role="search">
                 <a href="#/profile" class="btn btn-outline-dark btn-login" type="submit" id="btn-login" style="padding:0;">
-                  <img id="profile-button" src="./Images/profile.png" alt="Profile" width="40" height="40">
+                  <img id="profile-button" src="./Images/profile.png" alt="Profile" width="50" height="50">
                 </a>
               </form>
             </div>
@@ -70,7 +70,7 @@ class hatiNav extends HTMLElement {
                     <li><a class="dropdown-item" href="#/marketplace">Marketplace</a></li>
                     <li><a class="dropdown-item" href="#/cart">Keranjang</a></li>
                     <li><a class="dropdown-item" href="#/order">Pesanan</a></li>
-                    <li><a class="dropdown-item" href="#/news">Berita</a></li>
+                    <li> <a class="dropdown-item" href="#/home" onclick="scrollToNews()">Berita</a></li>
                   </ul>
                 </li>
                 <li class="nav-item">
