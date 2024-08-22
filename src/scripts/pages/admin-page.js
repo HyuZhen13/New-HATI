@@ -608,51 +608,55 @@ const AdminPage = {
             
           </div>
         `;
-          const verification = await VerificationData.getAllVerification();
-          const verificationList = document.querySelector('#verification-list');
-          if (verification) {
-            Object.values(verification).reverse().forEach((item) => {
-              UserData.getUserData(item.uid).then((userData) => {
-                const verificationItem = document.createElement('div');
-                verificationItem.innerHTML = `
-              <div class="verification-item">
-                <p class="store-name">${userData.name}</p>
-                <div class="product-actions">
-                  <a href="${item.doc}">Download Document</a>
-                  <button class="edit" style="text-decoration: none; cursor: pointer;" id="view-${item.id}">View Store</button>
-                  <form name="verifyStore" id="verifyStore" method="POST" enctype="multipart/form-data">
-                      <select name="verifyStatus">
-                        <option value="rejected">Tolak Verifikasi</option>
-                        <option value="verified">Terima Verifikasi</option>
-                      </select>
-                      <button type="submit">Confirm</button>
-                  </form>
+        const verification = await VerificationData.getAllVerification();
+        const verificationList = document.querySelector('#verification-list');
+        if (verification) {
+          Object.values(verification).reverse().forEach((item) => {
+            UserData.getUserData(item.uid).then((userData) => {
+              const verificationItem = document.createElement('div');
+              verificationItem.innerHTML = `
+                <div class="verification-item">
+                  <p class="store-name">${userData.name}</p>
+                  <div class="product-actions">
+                    <a href="${item.doc}">Download Document</a>
+                    <button class="edit" style="text-decoration: none; cursor: pointer;" id="view-${item.id}">View Store</button>
+                    <form name="verifyStore" id="verifyStore-${item.id}" method="POST" enctype="multipart/form-data">
+                        <select name="verifyStatus">
+                          <option value="rejected">Tolak Verifikasi</option>
+                          <option value="verified">Terima Verifikasi</option>
+                        </select>
+                        <button type="submit">Confirm</button>
+                    </form>
+                  </div>
                 </div>
-              </div>
               `;
-                verificationList.appendChild(verificationItem);
-                document.querySelector(`#view-${item.id}`).addEventListener('click', (event) => {
-                  event.preventDefault();
-                  if (item.id) {
-                    location.href = `#/store/${userData.uid}`;
-                  }
-                });
-                const verifyStore = document.querySelector('#verifyStore');
-                verifyStore.addEventListener('submit', (e) => {
-                  e.preventDefault();
-                  const status = document.forms.verifyStore.verifyStatus.value;
-
-                  try {
-                    VerificationData.verifyStore(status, userData.uid);
-                  } catch (error) {
-                    console.log(error.message);
-                  } finally {
-                    document.querySelector('#menuVerifikasi').click();
-                  }
-                });
+              verificationList.appendChild(verificationItem);
+        
+              document.querySelector(`#view-${item.id}`).addEventListener('click', (event) => {
+                event.preventDefault();
+                if (item.id) {
+                  location.href = `#/store/${userData.uid}`;
+                }
+              });
+        
+              const verifyStoreForm = document.querySelector(`#verifyStore-${item.id}`);
+              verifyStoreForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const status = verifyStoreForm.verifyStatus.value;
+        
+                try {
+                  await VerificationData.verifyStore(status, userData.uid);
+                  alert('Verifikasi berhasil!');
+                } catch (error) {
+                  console.log(error.message);
+                  alert('Terjadi kesalahan saat melakukan verifikasi.');
+                } finally {
+                  document.querySelector('#menuVerifikasi').click();
+                }
               });
             });
-          }
+          });
+        }
           hideLoadingIcon();
         }, 1000);
       });
