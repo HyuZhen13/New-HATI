@@ -103,6 +103,17 @@ const NewsPage = {
     });
 
     notFoundMessage.style.display = 'none';
+
+    // Fungsi scroll ke elemen news-container
+    function scrollToNews() {
+      const newsContainer = document.getElementById('news-container');
+      if (newsContainer) {
+        newsContainer.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Panggil fungsi scroll setelah konten dirender
+    scrollToNews();
   },
 };
 
