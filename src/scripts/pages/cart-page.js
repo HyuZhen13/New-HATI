@@ -8,11 +8,12 @@ const CartPage = {
         <h1>Keranjang Belanja</h1>
         <div id="cart-items" class="cart-items"></div>
         <div id="total-price" class="total-price"></div>
-        <input type="file" id="payment-proof" />
+        <input type="file" id="payment-proof" accept="image/*" />
         <button id="checkout" disabled>Checkout</button>
       </div>
     `;
   },
+
   async afterRender() {
     const cartItems = await CartData.getCartItems();
     const cartItemsContainer = document.querySelector('#cart-items');
@@ -21,7 +22,7 @@ const CartPage = {
     const paymentProofInput = document.querySelector('#payment-proof');
     let totalPrice = 0;
 
-    cartItems.forEach(item => {
+    cartItems.forEach((item) => {
       const cartItem = document.createElement('div');
       cartItem.classList.add('cart-item');
       cartItem.innerHTML = `
@@ -33,6 +34,7 @@ const CartPage = {
       `;
       cartItemsContainer.appendChild(cartItem);
       totalPrice += item.price * item.quantity;
+
       const quantityInput = cartItem.querySelector('.quantity-input');
       quantityInput.addEventListener('change', async (e) => {
         const quantity = parseInt(e.target.value);
@@ -44,6 +46,7 @@ const CartPage = {
           location.reload();
         }
       });
+
       const removeButton = cartItem.querySelector('.remove-button');
       removeButton.addEventListener('click', async () => {
         await CartData.removeCartItem(item.id);
@@ -52,23 +55,27 @@ const CartPage = {
     });
 
     totalPriceContainer.innerHTML = `Total Harga: ${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice)}`;
+
     paymentProofInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
-      if (file) {
+      if (file && file.type.startsWith('image/')) {
         try {
           await CartData.uploadPaymentProof(file);
           checkoutButton.disabled = false;
         } catch (error) {
           alert('Gagal mengunggah bukti pembayaran: ' + error.message);
         }
+      } else {
+        alert('File yang diunggah harus berupa gambar.');
+        paymentProofInput.value = ''; // Reset input file
       }
     });
+
     checkoutButton.addEventListener('click', async () => {
       const paymentProof = CartData.getPaymentProof();
       if (paymentProof) {
-        // Konfirmasi sebelum melanjutkan checkout
-        const userConfirmed = window.confirm("Pastikan Anda sudah menghubungi penjual sebelum checkout. Apakah Anda sudah konfirmasi ke penjual melalui WhatsApp?");
-
+        const userConfirmed = window.confirm("Sudahkah Anda konfirmasi ke penjual melalui WhatsApp?");
+        
         if (userConfirmed) {
           try {
             await CartData.moveToOrderPage();
@@ -78,6 +85,7 @@ const CartPage = {
           }
         } else {
           alert("Silakan hubungi penjual terlebih dahulu melalui WhatsApp sebelum melanjutkan checkout.");
+          location.href = '#/marketplace';
         }
       } else {
         alert('Silakan unggah bukti pembayaran terlebih dahulu.');
@@ -85,4 +93,5 @@ const CartPage = {
     });
   },
 };
+
 export default CartPage;
