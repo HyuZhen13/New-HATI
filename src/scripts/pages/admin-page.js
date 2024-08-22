@@ -5,8 +5,6 @@ import ProductData from '../utils/product-data';
 import UserData from '../utils/user-data';
 import UserInfo from '../utils/user-info';
 import VerificationData from '../utils/verification-data';
-import { printOrderAsPDF } from '../pages/cetak-pesanan';
-import jsPDF from 'jspdf';
 
 const AdminPage = {
   async render() {
@@ -295,94 +293,6 @@ const AdminPage = {
             margin-bottom: 10px;
           }
         }
-
-                /* CSS untuk tampilan pesanan */
-        .order-list {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        
-        .order-item {
-          display: flex;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          padding: 10px;
-        }
-        
-        .order-item img {
-          max-width: 100px;
-          height: auto;
-          border-radius: 5px;
-        }
-        
-        .order-body {
-          flex: 1;
-          margin-left: 10px;
-        }
-        
-        .order-title {
-          font-size: 1.2em;
-          margin: 0;
-        }
-        
-        .order-text {
-          margin: 5px 0;
-        }
-        
-        .order-quantity {
-          margin: 5px 0;
-        }
-        
-        .order-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        
-        .delete, .print {
-          padding: 5px 10px;
-          border: none;
-          border-radius: 3px;
-          cursor: pointer;
-        }
-        
-        .delete {
-          background-color: #f44336;
-          color: white;
-        }
-        
-        .print {
-          background-color: #4caf50;
-          color: white;
-        }
-        
-        /* CSS untuk tampilan feedback */
-        .feedback-list {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        
-        .feedback-item {
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          padding: 10px;
-        }
-        
-        .feedback-user, .feedback-comment, .feedback-rating {
-          margin: 5px 0;
-        }
-        
-        .delete {
-          padding: 5px 10px;
-          border: none;
-          border-radius: 3px;
-          cursor: pointer;
-          background-color: #f44336;
-          color: white;
-        }
-
         
         @media (max-width: 550px) {
           body, html {
@@ -418,7 +328,7 @@ const AdminPage = {
           <ul class="menu-list">
             <li class="menu-item" id="menuBerita">Berita</li>
             <li class="menu-item" id="menuVerifikasi">Verifikasi</li>
-            <li class="menu-item" id="menuToko">User</li>
+            <li class="menu-item" id="menuToko">Toko</li>
             <li class="menu-item" id="menuProduk">Produk</li>
           </ul>
         </div>
@@ -435,7 +345,7 @@ const AdminPage = {
                   <p id="verifikasi-count" style="font-size: 50pt;">0</p>
                 </div>
                 <div class="product-item">
-                  <p class="product-name">User</p>
+                  <p class="product-name">Toko</p>
                   <p id="toko-count" style="font-size: 50pt;">0</p>
                 </div>
                 <div class="product-item">
@@ -834,69 +744,6 @@ const AdminPage = {
           hideLoadingIcon();
         }, 1000);
       });
-
-      // Fungsi Cetak pdf
-      function printOrderAsPDF(order) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text(`Order ID: ${order.id}`, 10, 10);
-        doc.text(`Name: ${order.name}`, 10, 20);
-        doc.text(`Price: ${order.price}`, 10, 30);
-        doc.addImage(order.image, 'JPEG', 10, 40, 180, 160);
-        doc.save(`Order_${order.id}.pdf`);
-      };
-
-  // Menu manajemen Pesanan
-      menuPesanan.addEventListener('click', () => {
-      showLoadingIcon();
-      setTimeout(async () => {
-        // Menghapus elemen HTML di luar elemen inner
-        const parentElement = contentContainer.parentNode;
-        while (parentElement.firstChild !== contentContainer) {
-          parentElement.removeChild(parentElement.firstChild);
-        }
-        contentContainer.innerHTML = `
-          <h2>Pesanan</h2>
-          <div id="order-list-admin" class="order-list"></div>
-        `;
-        const orderList = document.querySelector('#order-list-admin');
-
-        try {
-          const orders = await OrderData.getOrders(UserInfo.getUserInfo().uid);
-          if (orders) {
-            console.log('Order data:', orders);
-            orders.reverse().forEach((order) => {
-              order.items.forEach((item) => {
-                if (userProducts.some(product => product.id === item.id)) {
-                  const orderItem = document.createElement('div');
-                  orderItem.innerHTML = `
-                    <div class="order-item">
-                      <img src="${item.image}" class="order-img" alt="${item.name}">
-                      <div class="order-body">
-                        <h5 class="order-title">${item.name}</h5>
-                        <p class="order-price">${Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.price)}</p>
-                        <div class="feedback">
-                          <p><strong>${order.buyerName}</strong></p>
-                          <p>Rating: ${item.rating || 'N/A'}</p>
-                          <p>${item.comment || 'No comments'}</p>
-                        </div>
-                      </div>
-                      <div class="order-footer">
-                        <small class="text-muted">Ordered on ${new Date(order.timestamp).toLocaleDateString()}</small>
-                      </div>
-                    </div>
-                  `;
-                  orderList.appendChild(orderItem);
-                }
-              });
-            });
-          }
-        } catch (error) {
-          console.log('Error fetching orders:', error.message);
-        }
-      }, 500);
-    });
-
     }
   },
 };
