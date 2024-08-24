@@ -1440,6 +1440,11 @@ ul {
   #more-product {
     width: fit-content;
   }
+
+  .welcome-message {
+  font-size: 25px;
+  font-weight: 750;
+  }
 }
 
 @media (max-width: 600px) {
