@@ -4,21 +4,30 @@ import OrderData from '../utils/order-data';
 const OrderPage = {
   // Menghasilkan HTML dasar untuk halaman pesanan
   async render() {
-    return `
-      <div class="order-page">
-        <h1>Detail Pesanan</h1>
-        <div id="order-details" class="order-details"></div>
-        <br/>
-        <h1> Riwayat Feedback Pesanan </h1>
-        <div id="completed-orders" class="completed-orders"></div>
-      </div>
-    `;
+    // Cek apakah pengguna sudah login
+    if (UserInfo.getUserInfo().uid) {
+      return `
+        <div class="order-page">
+          <h1>Detail Pesanan</h1>
+          <div id="order-details" class="order-details"></div>
+          <br/>
+          <h1> Riwayat Feedback Pesanan </h1>
+          <div id="completed-orders" class="completed-orders"></div>
+        </div>
+      `;
+    }
+    // Redirect ke halaman login jika belum login
+    location.href = '#/login';
+    return ''; // Menghentikan render jika belum login
   },
 
   // Memanggil fungsi render untuk pesanan saat ini dan pesanan yang selesai setelah halaman dimuat
   async afterRender() {
-    await this.renderCurrentOrder();
-    await this.renderCompletedOrders();
+    // Cek apakah pengguna sudah login
+    if (UserInfo.getUserInfo().uid) {
+      await this.renderCurrentOrder();
+      await this.renderCompletedOrders();
+    }
   },
 
   // Merender pesanan saat ini
