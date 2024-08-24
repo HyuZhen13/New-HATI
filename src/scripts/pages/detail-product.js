@@ -54,7 +54,14 @@ const DetailProductPage = {
     const buyNow = document.querySelector('#buy-now');
     buyNow.addEventListener('click', (event) => {
       event.preventDefault();
-      window.open(`https://wa.me/${store.phone}`, '_blank');
+      let phoneNumber = store.phone;
+
+      // Cek apakah nomor telepon dimulai dengan '0'
+      if (phoneNumber.startsWith('0')) {
+        phoneNumber = '+62' + phoneNumber.slice(1); // Ganti '0' dengan '+62'
+      }
+
+      window.open(`https://wa.me/${phoneNumber}`, '_blank');
     });
 
     const addToCart = document.querySelector('#add-to-cart');
@@ -117,6 +124,7 @@ const DetailProductPage = {
       productText.innerText = 'Toko ini hanya memiliki satu produk.';
       moreProduct.appendChild(productText);
     }
+
     // Menambahkan bagian untuk menampilkan komentar dan rating produk
     try {
       const feedbacks = await OrderData.getProductFeedback(product.id);
