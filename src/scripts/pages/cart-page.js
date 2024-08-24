@@ -15,6 +15,14 @@ const CartPage = {
   },
 
   async afterRender() {
+    // Pengecekan login
+    const user = UserInfo.getUserInfo();
+    if (!user) {
+      alert('Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+      location.href = '#/login';
+      return;
+    }
+
     const cartItems = await CartData.getCartItems();
     const cartItemsContainer = document.querySelector('#cart-items');
     const totalPriceContainer = document.querySelector('#total-price');
