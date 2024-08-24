@@ -1,5 +1,6 @@
 import CartData from '../utils/cart-data';
 import UserInfo from '../utils/user-info';
+import UrlParser from '../routes/url-parser';
 
 const CartPage = {
   async render() {
@@ -15,10 +16,11 @@ const CartPage = {
   },
 
   async afterRender() {
-    // Pengecekan login
+    // Memeriksa apakah pengguna sudah login
     const user = UserInfo.getUserInfo();
     if (!user) {
-      alert('Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+      // Jika pengguna belum login, arahkan mereka ke halaman login
+      alert('Silakan login terlebih dahulu untuk mengakses keranjang belanja.');
       location.href = '#/login';
       return;
     }
