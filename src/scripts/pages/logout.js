@@ -6,7 +6,7 @@ const Logout = {
   },
   async afterRender() {
     UserInfo.deleteUserInfo();
-    location.href = '#/';
+    location.href = '#/home';
     location.reload();
   },
 };
