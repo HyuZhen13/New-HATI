@@ -13,10 +13,8 @@ import StorePage from '../pages/store-page';
 import NewsDetailPage from '../pages/detail-news';
 import CartPage from '../pages/cart-page';
 import OrderPage from '../pages/order-page';
-import LandingPage from '../pages/landing-page';
 
 const routes = {
-  '/': LandingPage,
   '/home': HomePage,
   '/login': LoginPage,
   '/logout': Logout,
