@@ -10,7 +10,7 @@ class hatiNav extends HTMLElement {
       this.innerHTML = `
         <nav class="navbar navbar-expand-lg bg-light">
           <div class="container-fluid">
-            <a class="navbar-brand mb-0 h1" href="#">
+            <a class="navbar-brand mb-0 h1" href="#/home">
               <img class="lazyload" crossorigin="anonymous" src="./favicon.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
               HATI
             </a>
@@ -63,7 +63,7 @@ class hatiNav extends HTMLElement {
                   <a class="nav-link active" aria-current="page" href="#/home">Home</a>
                 </li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="featuresDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a class="nav-link dropdown-toggle" href="#/home" id="featuresDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Features
                   </a>
                   <ul class="dropdown-menu" aria-labelledby="featuresDropdown">
